@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Puzzles\01_Onboarding.cs" />
+    <Content Include="Puzzles\02_Descent.cs" />
+    <Content Include="Puzzles\03_CodersStrikeBack.cs" />
+    <Content Include="Program.cs" />
+  </ItemGroup>
+</Project>

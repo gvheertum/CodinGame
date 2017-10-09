@@ -1,1 +1,1 @@
-*** Coding Game Snippets
+### CodinGame Snippets

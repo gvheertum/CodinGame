@@ -1,0 +1,8 @@
+obj/*
+obj/CodinGameExperiments.csproj.nuget.cache
+obj/CodinGameExperiments.csproj.nuget.g.props
+obj/CodinGameExperiments.csproj.nuget.g.targets
+obj/project.assets.json
+obj/Debug/netcoreapp2.0/CodinGameExperiments.AssemblyInfo.cs
+obj/Debug/netcoreapp2.0/CodinGameExperiments.AssemblyInfoInputs.cache
+obj/Debug/netcoreapp2.0/CodinGameExperiments.csproj.CoreCompileInputs.cache
