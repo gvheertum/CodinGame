@@ -9,5 +9,6 @@
     <Content Include="Puzzles\02_Descent.cs" />
     <Content Include="Puzzles\03_CodersStrikeBack.cs" />
     <Content Include="Program.cs" />
+    <Content Include="Puzzles\04_PowerOfThor.cs" />
   </ItemGroup>
 </Project>
