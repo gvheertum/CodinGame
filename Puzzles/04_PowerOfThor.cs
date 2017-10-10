@@ -15,6 +15,7 @@ namespace Puzzles.PowerOfThor
 {
     class Player
     {
+        //Container to store the positions of certain artifacts (like thor and the target)
         class PosContainer
         {
             public int X {get;set;}
@@ -33,23 +34,27 @@ namespace Puzzles.PowerOfThor
             int initialTX = int.Parse(inputs[2]); // Thor's starting X position
             int initialTY = int.Parse(inputs[3]); // Thor's starting Y position
 
+            //Put the data is a container that makes sense
             var targetPos = new PosContainer() { X = lightX, Y = lightY };
             var myPos = new PosContainer() { X = initialTX, Y = initialTY };
             // game loop
             while (true)
             {
+                //Reading what the status is and log some data
                 int remainingTurns = int.Parse(Console.ReadLine()); // The remaining amount of turns Thor can move. Do not remove this line.
                 LogConsole($"I'm @ {myPos} and have {remainingTurns} to go to the target");
             
-                // Write an action using Console.WriteLine()
-                // To debug: Console.Error.WriteLine("Debug messages...");
+                //Determine the path and direction we want to move to
                 var move = DeterminePath(myPos, targetPos);
                 LogConsole($"I decided to head: {move}");
+                
                 // A single line providing the move to be made: N NE E SE S SW W or NW
                 Console.WriteLine(move);
             }
         }
-        
+
+        //Based on the positions of the target and character determine the delta for x/y
+        //and the path to take
         static string DeterminePath(PosContainer pos, PosContainer target)
         {
             //Determine move and update coords
@@ -70,7 +75,7 @@ namespace Puzzles.PowerOfThor
             return DetermineDirection(xMove, yMove);
         }
         
-        //Based on the X/Y move we determine the direction to head
+        //Translate X/Y delta to a direction (wind directions: N, S, SE, etc...)
         static string DetermineDirection(int deltaX, int deltaY)
         {
             string res = "";
