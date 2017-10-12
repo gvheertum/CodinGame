@@ -32,8 +32,12 @@ namespace Puzzles.ShadowsOfTheKnight
     class Player
     {
          //Note: this silly tower has its floors numbered from 0 on the top downwards
-       
-        static void Main(string[] args)
+
+        //List of historical jumps, for finding the mid-point
+        private static List<Position> jumps = new List<Position>();
+
+
+        public static void Main(string[] args)
         {
             string[] inputs;
             inputs = Console.ReadLine().Split(' ');
@@ -48,8 +52,9 @@ namespace Puzzles.ShadowsOfTheKnight
             Log($"Building: h: {height} w:{width}");
             Log($"Batman at: {batmanPos}");
 
-            //The outerbound is used to determine 
-            Position outerbound = null;
+            //Batmans is already in the grid, so add his pos
+            jumps.Add(batmanPos.GetCopy());
+            
             // game loop
             while (true)
             {
@@ -57,24 +62,91 @@ namespace Puzzles.ShadowsOfTheKnight
                 string bombDir = Console.ReadLine(); // the direction of the bombs from batman's current location (U, UR, R, DR, D, DL, L or UL)
                 Log($"Bomb is in {bombDir} direction of us");
                 
-                bool firstTryOuter = outerbound == null;
-                outerbound = outerbound == null 
+                var jumpPos = jumps.Count() < 2 //If there are not 2 items in the list we can do an bound jump 
                     ? GetInitialMaxBound(batmanPos, flatMinPos, flatMaxPos, bombDir) 
-                    : CalculateJumpPosition(bombDir, batmanPos);
+                    : DetermineJumpPositionBySplitting(jumps, bombDir);
                 
-                var jumpPos = firstTryOuter ? outerbound : GetSplitPoint(outerbound, batmanPos);
-
-                Log($"Decided to move the battyman to: {jumpPos}");
-                
-                // the location of the next window Batman should jump to.
-                Console.WriteLine(jumpPos.GetAsJumpPosition());
+                PerformJump(jumpPos);
                 nrOfTurns--;
             }
         }
 
+        //Perform the jump of the batty man and add it to the history list
+        private static void PerformJump(Position pos)
+        {
+            Log($"Decided to move the battyman to: {pos}");
+                
+            // the location of the next window Batman should jump to.
+            Console.WriteLine(pos.GetAsJumpPosition());
+            jumps.Add(pos.GetCopy());
+        }
+
+        //Find a new spot to jump to by using a method to jump to the middle each time
+        private static Position DetermineJumpPositionBySplitting(List<Position> positions, string direction)
+        {
+            var relPos = GetRelevantPositionsForSplit(positions, direction);
+            var splitted = CalculateSplitPoint(relPos[0], relPos[1], direction);
+            return splitted;
+        }
+
+        //See which points in the collection as best suitable for the new splitted position (base on the direction and the last few jumps)
+        private static List<Position> GetRelevantPositionsForSplit(List<Position> positions, string direction)
+        {
+            if(positions.Count == 2) { return positions; } //In this case we just aim between thsese 2, since the first 2 steps ware batman and the outerbound
+
+            //Determine the last position and find canidate to select as boundary
+            var pCount = positions.Count();
+            var p1 = positions[pCount -1];
+            var p2Candidate1 = positions[pCount - 2];
+            var p2Candidate2 = positions[pCount - 3];
+
+            Log($"Trying to find the splice for: {p1} and {p2Candidate1} or {p2Candidate2} for direction {direction}");
+            var p2Final = p1.GetCopy();
+            if(BombIsLeft(direction)) { p2Final.X = Math.Min(p2Candidate1.X, p2Candidate2.X); }
+            if(BombIsRight(direction)) { p2Final.X = Math.Max(p2Candidate1.X, p2Candidate2.X); }
+
+            if(BombIsUp(direction)) { p2Final.Y = Math.Min(p2Candidate1.Y, p2Candidate2.Y); }
+            if(BombIsDown(direction)) { p2Final.Y = Math.Max(p2Candidate1.Y, p2Candidate2.Y); }
+
+            Log($"Determined: {p2Final} as best bound jump");
+
+            return new List<Position>() { p2Final, p1 };
+        }
+
+        //Calculate the split point between 2 bounds
+        private static Position CalculateSplitPoint(Position prev, Position curr, string direction)
+        {
+            Log($"Finding a split point between: {prev} and {curr}");
+            var midPos = curr.GetCopy(); //Start with curr as aiming point
+            //Only middle if the bomb is moved in a certain direction
+            if(BombIsLeft(direction) || BombIsRight(direction)) 
+            { 
+                Log("Need to middle for X axis");
+                int newX = (prev.X + curr.X) / 2; 
+                newX = newX != prev.X ? newX : curr.X; //Fore the item to move (if not moved due to rounding this will force it to move)
+                if(newX == prev.X) { newX = ForceNudgeStepForX(newX, direction); }
+                Log($"Setting X-> {newX}");
+                midPos.X = newX;
+            }
+
+            if(BombIsUp(direction) || BombIsDown(direction)) 
+            {
+                Log("Need to middle for Y axis");
+                int newY = (prev.Y + curr.Y) / 2; 
+                newY = newY != prev.Y ? newY : curr.Y; //Fore the item to move (if not moved due to rounding this will force it to move)
+                if(newY == prev.Y) { newY = ForceNudgeStepForY(newY, direction); }
+                Log($"Setting Y-> {newY}");
+                midPos.Y = newY;
+            }
+
+            Log($"Split point: {midPos}");
+            return midPos;
+        }
+
+        
 
         //Determine the outerbound based on the direction, batmans pas and the max pos of the flat.
-        static Position GetInitialMaxBound(Position batman, Position minPos, Position maxPos, string direction)
+        private static Position GetInitialMaxBound(Position batman, Position minPos, Position maxPos, string direction)
         {
             Log($"Determine the bound based on batman: {batman} min: {minPos} max: {maxPos} dir: {direction}");
             //In some cases the bomb is hiding is the corner, we can directly try to go there
@@ -88,12 +160,28 @@ namespace Puzzles.ShadowsOfTheKnight
             return newPos;
         }
 
+        //In some cases we end up with rounding issues. If the position does not move when splitting, but
+        //when there IS a change required this function will force the step to be increased/decreased
+        private static int ForceNudgeStepForX(int step, string direction) 
+        {
+            if(BombIsLeft(direction)) { return step-1; }
+            if(BombIsRight(direction)) { return step+1; }
+            Log("Force step is done, but there is no force needed");
+            return step;
+        }
        
+        private static int ForceNudgeStepForY(int step, string direction) 
+        {
+            if(BombIsDown(direction)) { return step+1; }
+            if(BombIsUp(direction)) { return step-1; }
+            Log("Force step is done, but there is no force needed");
+            return step;
+        }
         //Determine the next step based on direction: UD - LR and position of batman
         //The current implementation just lets batman jump in the direction of the bomb.
         //This is a simple quick solve, a smart algorithm with search/smart guessing is next.
         
-        static Position CalculateJumpPosition(string direction, Position batmanPos)
+        private static Position CalculateStepByStepPosition(string direction, Position batmanPos)
         {   
             int yDelta = 0;
             int xDelta = 0;
@@ -111,33 +199,18 @@ namespace Puzzles.ShadowsOfTheKnight
 
             return batmanPos;
         }
+        
+        
+        
+
+
+        //HELPER FUNCTIONS
+        //***********************/
         private static bool BombIsDown(string dir) { return dir.IndexOf("D") > -1; }
         private static bool BombIsUp(string dir) { return dir.IndexOf("U") > -1; }
         private static bool BombIsLeft(string dir) { return dir.IndexOf("L") > -1; }
         private static bool BombIsRight(string dir) { return dir.IndexOf("R") > -1; }
-        
-        static Position GetSplitPoint(Position p1, Position p2)
-        {
-            var midPos = new Position()
-            {
-                X = (p1.X + p2.X) / 2,
-                Y = (p1.Y + p2.Y) / 2
-            };
-            Log($"Split point: {midPos}");
-            return midPos;
-        }
-        
-        // static int TrySolveXAxis() 
-        // {
-
-        // }
-
-        // static int TrySolveYAxis(int min, int currMax, string direction)
-        // {
-
-        // }
-
-        static void Log(object obj)
+        private static void Log(object obj)
         {
             Console.Error.WriteLine(obj);
         }
