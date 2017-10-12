@@ -85,6 +85,7 @@ namespace Puzzles.ThereIsNoSpoon
 				? Console.ReadLine()
 				: _stringBuffer[_stringBufferIdx];
 			_stringBufferIdx++;
+			Log($"Input line: {res}");
 			return res;
 		}
 
@@ -94,24 +95,20 @@ namespace Puzzles.ThereIsNoSpoon
 
 			int width = int.Parse(ReadInputLine()); // the number of cells on the X axis
 			int height = int.Parse(ReadInputLine()); // the number of cells on the Y axis
-			Log($"Field h: {height} w: {width}");
 			for (int i = 0; i < height; i++)
 			{
 				string line = ReadInputLine(); // width characters, each either 0 or .
 				fieldLines.Add(line);	
 			}
 
+			Log($"Field h: {height} w: {width}");
 			//Parse the nodes from the collection (note they are not yet linked)
 			var nodeCollection = GetNodesFromInput(fieldLines);
 			var flatNodes = nodeCollection.SelectMany(m => m);
-			Log($"Found {flatNodes} nodes");
+			Log($"Found {flatNodes.Count()} nodes");
 
-			Log("Going to link neighbors");
+			//Start linking the nodes
 			LinkNeigbors(flatNodes);
-
-			// Write an action using Console.WriteLine()
-			// To debug: Console.Error.WriteLine("Debug messages...");
-
 
 			// Three coordinates: a node, its right neighbor, its bottom neighbor
 			
@@ -154,23 +151,31 @@ namespace Puzzles.ThereIsNoSpoon
 			return nodes;
 		}
 
-		private static List<Node> LinkNeigbors(IEnumerable<Node> nodes)
+		private static void LinkNeigbors(IEnumerable<Node> nodes)
 		{
 			//It would be nice to have new items, immutability and such, but meh
 			nodes.ToList().ForEach(n => 
 			{
-				n.Neigbor1 = new NotANode();
-				n.Neigbor2 = new NotANode();
+				FindNeighborsForNode(n, nodes);
 			});
-			return nodes.ToList();
 		}
 
-		private static Node FindNeighborsForNode(Node node, IEnumerable<Node> nodes)
+		private static void FindNeighborsForNode(Node node, IEnumerable<Node> nodes)
 		{
-			if(node is NotANode) {return node; } //Skip void nodes
-			//node.Neigbor1 = null;
-			//node.Neigbor2 = null;
-			return node;
+			if(node is NotANode) {return; } //Skip void nodes
+
+			node.Neigbor1 = FindRightNeigbor(node, nodes);
+			node.Neigbor2 = FindBottomNeighbor(node, nodes);
+		}
+
+		private static Node FindRightNeigbor(Node node, IEnumerable<Node> nodes)
+		{
+			return nodes.OrderBy(n => n.X).FirstOrDefault(n => n.X > node.X && n.Y == node.Y) ?? new NotANode();
+		}
+
+		private static Node FindBottomNeighbor(Node node, IEnumerable<Node> nodes)
+		{
+			return nodes.OrderBy(n => n.Y).FirstOrDefault(n => n.Y > node.Y && n.X == node.X) ?? new NotANode();		
 		}
 
 		private static void Log(object obj)
