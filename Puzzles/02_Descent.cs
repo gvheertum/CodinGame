@@ -14,35 +14,35 @@ using System.Collections.Generic;
  **/
 namespace Puzzles.Descent
 {
-    class Player
-    {
-        static void Main(string[] args)
-        {
+	class Player
+	{
+		static void Main(string[] args)
+		{
 
-            // game loop
-            while (true)
-            {
-                
-                List<int> currentMountainHeights = GetMountainsFromConsole().ToList();
-                // Write an action using Console.WriteLine()
-                // To debug: Console.Error.WriteLine("Debug messages...");
-                int mountainToShoot = GetMountainToShoot(currentMountainHeights);
-                Console.WriteLine(mountainToShoot); // The index of the mountain to fire on.
-            }
-        }
-        
-        private const int ExpectedMountains = 8;
-        private static IEnumerable<int> GetMountainsFromConsole()
-        {
-            for (int i = 0; i < ExpectedMountains; i++)
-            {
-                yield return int.Parse(Console.ReadLine()); // represents the height of one mountain.
-            }
-        }
-        
-        private static int GetMountainToShoot(IEnumerable<int> mountains)
-        {
-            return mountains.ToList().IndexOf(mountains.Max(m => m));
-        }
-    }
+			// game loop
+			while (true)
+			{
+				
+				List<int> currentMountainHeights = GetMountainsFromConsole().ToList();
+				// Write an action using Console.WriteLine()
+				// To debug: Console.Error.WriteLine("Debug messages...");
+				int mountainToShoot = GetMountainToShoot(currentMountainHeights);
+				Console.WriteLine(mountainToShoot); // The index of the mountain to fire on.
+			}
+		}
+		
+		private const int ExpectedMountains = 8;
+		private static IEnumerable<int> GetMountainsFromConsole()
+		{
+			for (int i = 0; i < ExpectedMountains; i++)
+			{
+				yield return int.Parse(Console.ReadLine()); // represents the height of one mountain.
+			}
+		}
+		
+		private static int GetMountainToShoot(IEnumerable<int> mountains)
+		{
+			return mountains.ToList().IndexOf(mountains.Max(m => m));
+		}
+	}
 }
