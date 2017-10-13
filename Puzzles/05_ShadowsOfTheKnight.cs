@@ -101,6 +101,8 @@ namespace Puzzles.ShadowsOfTheKnight
 			
 			var middledXJump = xJumpPrev / 2;
 			var middledYJump = yJumpPrev / 2;
+			if(middledXJump == 0) { Log("X jump was calculated to 0, forced to 1"); middledXJump = 1; }
+			if(middledYJump == 0) { Log("Y jump was calculated to 0, forced to 1"); middledYJump = 1; }
 
 			Log($"Last jump delta => x:{xJumpPrev} y:{yJumpPrev}, midPoint delta => x:{middledXJump} y:{middledYJump}");
 			var newPos = curr.GetCopy(); //Start with curr as aiming point

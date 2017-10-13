@@ -50,6 +50,8 @@ namespace Helpers
 
 			files.ForEach(f => 
 			{
+				resBuilder.AppendLine();
+				resBuilder.AppendLine();
 				resBuilder.AppendLine($"//File: {f.FileName}");
 				resBuilder.AppendJoin(Environment.NewLine, f.Lines);
 			});
