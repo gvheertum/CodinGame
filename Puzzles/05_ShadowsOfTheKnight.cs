@@ -84,58 +84,35 @@ namespace Puzzles.ShadowsOfTheKnight
 		//See which points in the collection as best suitable for the new splitted position (base on the direction and the last few jumps)
 		private List<Position> GetRelevantPositionsForSplit(List<Position> positions, string direction)
 		{
-			if(positions.Count == 2) { return positions; } //In this case we just aim between thsese 2, since the first 2 steps ware batman and the outerbound
-
 			//Determine the last position and find canidate to select as boundary
 			var pCount = positions.Count();
 			var p1 = positions[pCount -1];
-			var p2Candidate1 = positions[pCount - 2];
-			var p2Candidate2 = positions[pCount - 3];
-
-			Log($"Trying to find the splice for: {p1} and {p2Candidate1} or {p2Candidate2} for direction {direction}");
-			var p2Final = p1.GetCopy();
-			if(BombIsLeft(direction)) { p2Final.X = Math.Min(p2Candidate1.X, p2Candidate2.X); }
-			if(BombIsRight(direction)) { p2Final.X = Math.Max(p2Candidate1.X, p2Candidate2.X); }
-
-			if(BombIsUp(direction)) { p2Final.Y = Math.Min(p2Candidate1.Y, p2Candidate2.Y); }
-			if(BombIsDown(direction)) { p2Final.Y = Math.Max(p2Candidate1.Y, p2Candidate2.Y); }
-
-			Log($"Determined: {p2Final} as best bound jump");
-
-			return new List<Position>() { p2Final, p1 };
+			var p2= positions[pCount - 2];
+			return new List<Position>() { p2, p1 };
 		}
 
 		//Calculate the split point between 2 bounds
 		private Position CalculateSplitPoint(Position prev, Position curr, string direction)
 		{
 			Log($"Finding a split point between: {prev} and {curr}");
-			var midPos = curr.GetCopy(); //Start with curr as aiming point
-			//Only middle if the bomb is moved in a certain direction
-			if(BombIsLeft(direction) || BombIsRight(direction)) 
-			{ 
-				Log("Need to middle for X axis");
-				int newX = (prev.X + curr.X) / 2; 
-				newX = newX != prev.X ? newX : curr.X; //Fore the item to move (if not moved due to rounding this will force it to move)
-				if(newX == prev.X) { newX = ForceNudgeStepForX(newX, direction); }
-				Log($"Setting X-> {newX}");
-				midPos.X = newX;
-			}
+			
+			var xJumpPrev = Math.Abs(prev.X - curr.X);
+			var yJumpPrev = Math.Abs(prev.Y - curr.Y);
+			
+			var middledXJump = xJumpPrev / 2;
+			var middledYJump = yJumpPrev / 2;
 
-			if(BombIsUp(direction) || BombIsDown(direction)) 
-			{
-				Log("Need to middle for Y axis");
-				int newY = (prev.Y + curr.Y) / 2; 
-				newY = newY != prev.Y ? newY : curr.Y; //Fore the item to move (if not moved due to rounding this will force it to move)
-				if(newY == prev.Y) { newY = ForceNudgeStepForY(newY, direction); }
-				Log($"Setting Y-> {newY}");
-				midPos.Y = newY;
-			}
+			Log($"Last jump delta => x:{xJumpPrev} y:{yJumpPrev}, midPoint delta => x:{middledXJump} y:{middledYJump}");
+			var newPos = curr.GetCopy(); //Start with curr as aiming point
+			if(BombIsLeft(direction)) { newPos.X = newPos.X - middledXJump; }
+			if(BombIsRight(direction)) { newPos.X = newPos.X + middledXJump; }
+			
+			if(BombIsUp(direction)) { newPos.Y = newPos.Y - middledYJump; }
+			if(BombIsDown(direction)) { newPos.Y = newPos.Y + middledYJump; }
 
-			Log($"Split point: {midPos}");
-			return midPos;
+			Log($"New jump loc: {newPos}");
+			return newPos;
 		}
-
-		
 
 		//Determine the outerbound based on the direction, batmans pas and the max pos of the flat.
 		private Position GetInitialMaxBound(Position batman, Position minPos, Position maxPos, string direction)

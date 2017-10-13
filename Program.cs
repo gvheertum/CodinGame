@@ -1,19 +1,38 @@
 ﻿using System;
 using Shared;
+using System.Linq;
 using SpecificEngines;
+using Helpers;
 
 namespace CodinGameExperiments
 {
     class Program
-    {
+    {	
+		private const string CurrentPuzzleFileForMerge = "Puzzles/05_ShadowsOfTheKnight.cs";
+		private const string CurrentMergeOutput = "Merged/MergedCodingFile.cs";
         static void Main(string[] args)
         {
-			Console.WriteLine("Puzzle thingofabob");
-			
+			Console.WriteLine("Puzzle solution");
+			if(args.Any(a => string.Equals("merge", a, StringComparison.OrdinalIgnoreCase))) 
+			{
+				RunMerge();
+				return;
+			}
+
 			//RunThereIsNoSpoonExample();
 			RunBatman();
         }
 
+		private static void RunMerge()
+		{
+			System.Console.WriteLine("Running the merger");
+			System.Console.WriteLine($"Merging shared and {CurrentPuzzleFileForMerge}");
+			var merger = new FileMerger(AppContext.BaseDirectory, CurrentPuzzleFileForMerge);
+			merger.WriteMergedFile(CurrentMergeOutput);
+			System.Console.WriteLine($"Output written to: {CurrentMergeOutput}");
+		}
+
+		
 
 		private static void RunThereIsNoSpoonExample()
 		{
@@ -21,7 +40,6 @@ namespace CodinGameExperiments
 			var buffer2 = new [] { "5", "1", "0.0.0" };
 			var engine = new StringBufferGameEngine(buffer1);
 			new Puzzles.ThereIsNoSpoon.Player(engine).Run();
-			Console.WriteLine("Done");
 		}
 
 		private static void RunBatman()
