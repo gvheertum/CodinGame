@@ -9,7 +9,7 @@ namespace CodinGameExperiments
     class Program
     {	
 		private const string CurrentPuzzleFileForMerge = "Puzzles/05_ShadowsOfTheKnight.cs";
-		private const string CurrentMergeOutput = "Merged/MergedCodingFile.cs";
+		private const string CurrentMergeOutput = "Merged/MergedCodingFile.cs.merged";
         static void Main(string[] args)
         {
 			Console.WriteLine("Puzzle solution");
@@ -31,8 +31,6 @@ namespace CodinGameExperiments
 			merger.WriteMergedFile(CurrentMergeOutput);
 			System.Console.WriteLine($"Output written to: {CurrentMergeOutput}");
 		}
-
-		
 
 		private static void RunThereIsNoSpoonExample()
 		{

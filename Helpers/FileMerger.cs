@@ -9,12 +9,20 @@ namespace Helpers
 {
 	public class FileMerger
 	{
+		public class ReadRes
+		{
+			public string FileName { get; set; }
+			public List<string> Lines { get; set;}
+			public List<string> Usings { get; set; }
+		}
+
+
 		private string _sourcePath;
 		private string _mainFile;
 		public FileMerger(string sourcePath, string mainFile)
 		{
 			_sourcePath = GetSourcePathBasedOnRunPath(sourcePath);
-			if(string.IsNullOrWhiteSpace(_mainFile) || !mainFile.EndsWith(".cs"))
+			if(string.IsNullOrWhiteSpace(mainFile) || !(mainFile.EndsWith(".cs") || mainFile.EndsWith(".cs.merged")))
 			{
 				throw new Exception("Invalid data");
 			}
@@ -33,24 +41,56 @@ namespace Helpers
 		{
 			var fullFile = _sourcePath + outputFile;
 
-			var mainFileContent = ReadFile(_mainFile);
-			var content = GetMergedFileContent();
-			System.IO.File.WriteAllText(outputFile, mainFileContent + Environment.NewLine + Environment.NewLine + content);
+			var files = new List<ReadRes>();
+			files.Add(ReadFile(_mainFile));
+			files.AddRange(GetMergedFileContent());
+
+			StringBuilder resBuilder = new StringBuilder();
+			files.SelectMany(f => f.Usings).Distinct().ToList().ForEach(u => resBuilder.AppendLine(u));
+
+			files.ForEach(f => 
+			{
+				resBuilder.AppendLine($"//File: {f.FileName}");
+				resBuilder.AppendJoin(Environment.NewLine, f.Lines);
+			});
+		
+			System.IO.File.WriteAllText(outputFile, resBuilder.ToString());
 		}
 
-		public string GetMergedFileContent()
+		public List<ReadRes> GetMergedFileContent()
 		{
-			var fileRes = string.Join(Environment.NewLine, GetMergeFilesShared().Select(ReadFile));
+			var fileRes = GetMergeFilesShared().Select(ReadFile).ToList();
 			return fileRes;
 		}
-		private string ReadFile(string filePath) 
+		private ReadRes ReadFile(string filePath) 
 		{
 			string fileToLook = _sourcePath + filePath;
 			if(!System.IO.File.Exists(_sourcePath + filePath))
 			{
 				throw new Exception($"Unknown file: {fileToLook}");
 			}
-			return System.IO.File.ReadAllText(fileToLook);
+			var lines = System.IO.File.ReadAllLines(fileToLook);
+
+			var usingLines = new List<string>();
+			var codeLines = new List<string>();
+			lines.ToList().ForEach(line => 
+			{
+				if(line.StartsWith("using "))
+				{
+					usingLines.Add(line);
+				}
+				else 
+				{
+					codeLines.Add(line);
+				}
+			});
+
+			return new ReadRes()
+			{
+				FileName = filePath,
+				Lines = codeLines,
+				Usings = usingLines
+			};
 		}
 		
 		public IEnumerable<string> GetMergeFilesShared()
