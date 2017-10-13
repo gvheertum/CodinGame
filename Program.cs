@@ -1,4 +1,5 @@
 ﻿using System;
+using Shared;
 
 namespace CodinGameExperiments
 {
@@ -14,10 +15,10 @@ namespace CodinGameExperiments
 
 		private static void RunThereIsNoSpoonExample()
 		{
-			var testCase1 = new [] { "2","2", "00", "0." };
-			var testCase2 = new [] { "5", "1", "0.0.0" };
-			Puzzles.ThereIsNoSpoon.Player.SetStringBuffer(testCase2);
-			Puzzles.ThereIsNoSpoon.Player.Main(null);
+			var buffer1 = new [] { "2","2", "00", "0." };
+			var buffer2 = new [] { "5", "1", "0.0.0" };
+			var engine = new StringBufferGameEngine(buffer1);
+			new Puzzles.ThereIsNoSpoon.Player(engine).Run();
 			Console.WriteLine("Done");
 		}
     }

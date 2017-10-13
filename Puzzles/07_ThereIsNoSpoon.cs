@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using Shared;
 
 //https://www.codingame.com/ide/puzzle/there-is-no-spoon-episode-1
 
@@ -68,36 +69,23 @@ namespace Puzzles.ThereIsNoSpoon
 		}
 	}
 
-	class Player
+	public class Player : PuzzleMain
 	{
-		private static List<string> _stringBuffer = null;
-		private static int _stringBufferIdx = 0;
-
-		public static void SetStringBuffer(IEnumerable<string> buffer)
-		{
-			Log("Running from the string buffer");
-			_stringBuffer = buffer.ToList();
-			_stringBufferIdx = 0;
-		}
-		public static string ReadInputLine()
-		{
-			var res = _stringBuffer == null 
-				? Console.ReadLine()
-				: _stringBuffer[_stringBufferIdx];
-			_stringBufferIdx++;
-			Log($"Input line: {res}");
-			return res;
-		}
-
+		public Player(IGameEngine engine) : base(engine) {}
 		public static void Main(string[] args)
+		{
+			new Player(null).Run();
+		}
+
+		public void Run()
 		{
 			List<string> fieldLines = new List<string>();
 
-			int width = int.Parse(ReadInputLine()); // the number of cells on the X axis
-			int height = int.Parse(ReadInputLine()); // the number of cells on the Y axis
+			int width = int.Parse(ReadLine()); // the number of cells on the X axis
+			int height = int.Parse(ReadLine()); // the number of cells on the Y axis
 			for (int i = 0; i < height; i++)
 			{
-				string line = ReadInputLine(); // width characters, each either 0 or .
+				string line = ReadLine(); // width characters, each either 0 or .
 				fieldLines.Add(line);	
 			}
 
@@ -117,13 +105,11 @@ namespace Puzzles.ThereIsNoSpoon
 			Log($"Going to echo {respStrings.Count} response nodes");
 			respStrings.ForEach(r => 
 			{ 
-				Console.WriteLine(r);
+				WriteLine(r);
 			});
-
-			//Console.WriteLine("0 0 1 0 0 1");
 		}
 		
-		private static List<List<Node>> GetNodesFromInput(List<string> lines)
+		private List<List<Node>> GetNodesFromInput(List<string> lines)
 		{
 			Log($"Processing {lines.Count} lines");
 			List<List<Node>> listList = new List<List<Node>>();
@@ -134,7 +120,7 @@ namespace Puzzles.ThereIsNoSpoon
 			return listList;
 		}
 
-		private static List<Node> GetNodesFromLine(string line, int lineIndex)
+		private List<Node> GetNodesFromLine(string line, int lineIndex)
 		{
 			Log($"Line[{lineIndex}]: {line}");
 			List<Node> nodes = new List<Node>();
@@ -151,7 +137,7 @@ namespace Puzzles.ThereIsNoSpoon
 			return nodes;
 		}
 
-		private static void LinkNeigbors(IEnumerable<Node> nodes)
+		private void LinkNeigbors(IEnumerable<Node> nodes)
 		{
 			//It would be nice to have new items, immutability and such, but meh
 			nodes.ToList().ForEach(n => 
@@ -160,7 +146,7 @@ namespace Puzzles.ThereIsNoSpoon
 			});
 		}
 
-		private static void FindNeighborsForNode(Node node, IEnumerable<Node> nodes)
+		private void FindNeighborsForNode(Node node, IEnumerable<Node> nodes)
 		{
 			if(node is NotANode) {return; } //Skip void nodes
 
@@ -168,20 +154,14 @@ namespace Puzzles.ThereIsNoSpoon
 			node.Neigbor2 = FindBottomNeighbor(node, nodes);
 		}
 
-		private static Node FindRightNeigbor(Node node, IEnumerable<Node> nodes)
+		private Node FindRightNeigbor(Node node, IEnumerable<Node> nodes)
 		{
 			return nodes.OrderBy(n => n.X).FirstOrDefault(n => n.X > node.X && n.Y == node.Y) ?? new NotANode();
 		}
 
-		private static Node FindBottomNeighbor(Node node, IEnumerable<Node> nodes)
+		private Node FindBottomNeighbor(Node node, IEnumerable<Node> nodes)
 		{
 			return nodes.OrderBy(n => n.Y).FirstOrDefault(n => n.Y > node.Y && n.X == node.X) ?? new NotANode();		
 		}
-
-		private static void Log(object obj)
-		{
-			Console.Error.WriteLine(obj);
-		}
 	}
-	
 }

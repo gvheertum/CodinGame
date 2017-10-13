@@ -11,6 +11,8 @@ using System.Collections.Generic;
  **/
 namespace Puzzles.ShadowsOfTheKnight
 {
+	//Revision II: Updating the algorithm to find the midway
+
 	class Position
 	{
 		public int X {get;set;}
