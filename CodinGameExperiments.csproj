@@ -21,5 +21,8 @@
     <Content Include=".gitignore" />
     <Content Include="Shared\StringBufferGameEngine.cs" />
     <Content Include="Shared\CodinGameProxyEngine.cs" />
+    <Content Include="SpecificEngines\ShadowsOfTheKnightEngine.cs" />
+    <Content Include="Shared\Position.cs" />
+    <Content Include="Shared\GameEngineBase.cs" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using Shared;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -11,16 +12,6 @@ using System.Collections.Generic;
  **/
 namespace Puzzles.MarsLander
 {
-	public class Position
-	{
-		public int X { get; set; }
-		public int Y { get; set; }
-		public int PositionIndex { get; set; }
-		public override string ToString()
-		{
-			return $"Pos[{PositionIndex}] = x:{X} y:{Y}";
-		}
-	}
 
 	public class LanderData
 	{

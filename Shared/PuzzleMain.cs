@@ -13,13 +13,17 @@ namespace Shared
 	// Logging: Console.Error.Log -> Log
 	public abstract class PuzzleMain
 	{
-		IGameEngine _gameEngine;
+		private IGameEngine _gameEngine;
 		protected PuzzleMain(IGameEngine gameEngine)
 		{
 			if(gameEngine == null) { Log($"No game-engine set, using the CodingGameProxy"); }
 			_gameEngine = gameEngine ?? new CodingGameProxyEngine();
 			Log($"Running with game engine: {_gameEngine}");
 		}
+
+
+		//Exposes the running flag of the game engine
+		protected bool IsRunning() { return _gameEngine.IsRunning(); }
 
 		private List<string> _inputtedData = new List<string>();
 		protected string ReadLine() 
