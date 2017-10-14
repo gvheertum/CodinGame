@@ -33,8 +33,11 @@ namespace CodinGameExperiments
 			System.Console.WriteLine("No command provided, use one of the following:");
 			GetActions().ToList().ForEach(a => 
 			{
-				System.Console.WriteLine($":{a.Name}\t{a.Description}");
+				System.Console.WriteLine($"{a.Name}\t\t{a.Description}");
 			});
+			System.Console.WriteLine("Parameters:");
+			System.Console.WriteLine($"CurrentPuzzleFileForMerge \t\t {CurrentPuzzleFileForMerge}");
+			System.Console.WriteLine($"CurrentMergeOutput\t\t\t {CurrentMergeOutput}");
         }
 
 		private static RunAction GetRunAction(string action)
@@ -46,6 +49,7 @@ namespace CodinGameExperiments
 		private static IEnumerable<RunAction> GetActions() 
 		{
 			yield return new RunAction() { Name = "merge", Description = "Merge the files", Action = RunMerge };
+			yield return new RunAction() { Name = "watch", Description = "Watch a file for changes and merge", Action = RunWatch };
 			yield return new RunAction() { Name = "test-batman", Description = "Run batman test-case", Action = RunBatman };
 			yield return new RunAction() { Name = "test-nospoon", Description = "Run no spoon test-case", Action = RunThereIsNoSpoonExample };
 		}
@@ -53,13 +57,22 @@ namespace CodinGameExperiments
 		private static void RunMerge()
 		{
 			System.Console.WriteLine("Running the merger");
-			System.Console.WriteLine($"Merging shared and {CurrentPuzzleFileForMerge}");
-			var merger = new FileMerger(AppContext.BaseDirectory, CurrentPuzzleFileForMerge);
+			var merger = GetFileMerger();
 			merger.WriteMergedFile(CurrentMergeOutput);
-			System.Console.WriteLine($"Output written to: {CurrentMergeOutput}");
 		}
 
+		private static void RunWatch()
+		{
+			var merger = GetFileMerger();
+			System.Console.WriteLine($"Watching {CurrentPuzzleFileForMerge} and writing changes to: {CurrentMergeOutput}");
+			merger.WatchMergeFile(CurrentMergeOutput);
+		}
 
+		private static FileMerger GetFileMerger() 
+		{
+			System.Console.WriteLine($"Merging shared and {CurrentPuzzleFileForMerge}");
+			return new FileMerger(AppContext.BaseDirectory, CurrentPuzzleFileForMerge);
+		}
 
 		private static void RunThereIsNoSpoonExample()
 		{

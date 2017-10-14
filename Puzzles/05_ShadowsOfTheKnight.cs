@@ -172,8 +172,6 @@ namespace Puzzles.ShadowsOfTheKnight
 		}
 		
 		
-		
-
 
 		//HELPER FUNCTIONS
 		//***********************/

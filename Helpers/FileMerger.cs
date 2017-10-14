@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Helpers
 {
@@ -39,7 +40,7 @@ namespace Helpers
 
 		public void WriteMergedFile(string outputFile)
 		{
-			var fullFile = _sourcePath + outputFile;
+			var fullFile = GetFullFilePath(outputFile);
 
 			var files = new List<ReadRes>();
 			files.Add(ReadFile(_mainFile));
@@ -55,19 +56,43 @@ namespace Helpers
 				resBuilder.AppendLine($"//File: {f.FileName}");
 				resBuilder.AppendJoin(Environment.NewLine, f.Lines);
 			});
-		
 			System.IO.File.WriteAllText(outputFile, resBuilder.ToString());
+			Console.WriteLine($"Merged file written to {outputFile}");
 		}
+
+		public void WatchMergeFile(string outputFile)
+		{
+			var fileInfo = new System.IO.FileInfo(GetFullFilePath(_mainFile));
+			var watchDir = fileInfo.Directory.FullName;
+			Console.WriteLine($"Watching folder: {watchDir}");
+			System.IO.FileSystemWatcher fsw = new FileSystemWatcher(watchDir);
+			FileSystemEventHandler fswChanged = (sender, e) => 
+			{
+				Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss")}: detected change");
+				WriteMergedFile(outputFile);
+			};
+			fsw.Changed += fswChanged;
+
+			Console.WriteLine($"Waiting for changes");			
+			while(true) { fsw.WaitForChanged(WatcherChangeTypes.Changed); }
+		}
+
 
 		public List<ReadRes> GetMergedFileContent()
 		{
 			var fileRes = GetMergeFilesShared().Select(ReadFile).ToList();
 			return fileRes;
 		}
+
+		private string GetFullFilePath(string fileName)
+		{
+			return _sourcePath + fileName;
+		}
+
 		private ReadRes ReadFile(string filePath) 
 		{
-			string fileToLook = _sourcePath + filePath;
-			if(!System.IO.File.Exists(_sourcePath + filePath))
+			string fileToLook = GetFullFilePath(filePath);
+			if(!System.IO.File.Exists(fileToLook))
 			{
 				throw new Exception($"Unknown file: {fileToLook}");
 			}
