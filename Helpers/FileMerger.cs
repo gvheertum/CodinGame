@@ -18,33 +18,47 @@ namespace Helpers
 		}
 
 
-		private string _sourcePath;
-		private string _mainFile;
-		public FileMerger(string sourcePath, string mainFile)
+		private string _sourcePath; //Root path of the sources folder
+		private string _puzzlePath; //Path to the puzzles
+		private string _sharedPath; //Path to the shared files
+		private string _outputPath; //Where to push results to
+		public FileMerger(string sourcePath, string puzzlePath, string sharedPath, string outputPath)
 		{
 			_sourcePath = GetSourcePathBasedOnRunPath(sourcePath);
-			if(string.IsNullOrWhiteSpace(mainFile) || !(mainFile.EndsWith(".cs") || mainFile.EndsWith(".cs.merged")))
+			if(string.IsNullOrWhiteSpace(puzzlePath) || string.IsNullOrWhiteSpace(sharedPath) || string.IsNullOrWhiteSpace(outputPath))
 			{
 				throw new Exception("Invalid data");
 			}
-			_mainFile = mainFile;	
+			_puzzlePath = _sourcePath + puzzlePath;
+			_sharedPath = _sourcePath + sharedPath;
+			_outputPath = _sourcePath + outputPath;
+			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Puzzle path invalid: {_puzzlePath}"); }
+			if(!System.IO.Directory.Exists(_sharedPath)) { throw new Exception($"Shared path invalid: {_sharedPath}"); }
+			if(!System.IO.Directory.Exists(_outputPath)) { throw new Exception($"Merge path invalid: {_outputPath}"); }
+
+			System.Console.WriteLine($"Merger started with parameters:");
+			System.Console.WriteLine($"Running path: {_sourcePath}");
+			System.Console.WriteLine($"Puzzle path: {_puzzlePath}");
+			System.Console.WriteLine($"Shared path: {_sharedPath}");
+			System.Console.WriteLine($"Output path: {_outputPath}");
 		}
 
-		private static string GetSourcePathBasedOnRunPath(string runPath)
+		
+
+		//Start writing the merge files for the puzzle files in the puzzle folder
+		public void MergePuzzleFiles()
 		{
-			//This assumes /bin/Debug and therefor a Mac/Linux environment for windows go find the \bin\Debug
-			if(runPath.IndexOf("/bin/Debug/", StringComparison.OrdinalIgnoreCase) < 0) { return runPath; }
-			var determinedBase = runPath.Substring(0, runPath.IndexOf("/bin/Debug/"));
-			return determinedBase.EndsWith("/") ? determinedBase : determinedBase + "/";
+			GetCodeFilesInPath(_puzzlePath).ForEach(file => MergePuzzleFile(file));
 		}
 
-		public void WriteMergedFile(string outputFile)
+		private void MergePuzzleFile(string writeFile)
 		{
-			var fullFile = GetFullFilePath(outputFile);
-
+			Console.WriteLine($"Merging file for: {writeFile}");
+			var outputFile = _sourcePath + "Merged/" + new System.IO.FileInfo(writeFile).Name + ".merged";
+			
 			var files = new List<ReadRes>();
-			files.Add(ReadFile(_mainFile));
-			files.AddRange(GetMergedFileContent());
+			files.Add(ReadFile(writeFile));
+			files.AddRange(GetSharedFiles());
 
 			StringBuilder resBuilder = new StringBuilder();
 			files.SelectMany(f => f.Usings).Distinct().ToList().ForEach(u => resBuilder.AppendLine(u));
@@ -60,16 +74,18 @@ namespace Helpers
 			Console.WriteLine($"Merged file written to {outputFile}");
 		}
 
-		public void WatchMergeFile(string outputFile)
+		
+		public void WatchPuzzleFiles()
 		{
-			var fileInfo = new System.IO.FileInfo(GetFullFilePath(_mainFile));
-			var watchDir = fileInfo.Directory.FullName;
+			var dirInfo = new System.IO.DirectoryInfo(_puzzlePath);
+			var watchDir = dirInfo.FullName;
 			Console.WriteLine($"Watching folder: {watchDir}");
 			System.IO.FileSystemWatcher fsw = new FileSystemWatcher(watchDir);
 			FileSystemEventHandler fswChanged = (sender, e) => 
 			{
 				Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss")}: detected change");
-				WriteMergedFile(outputFile);
+				System.Console.WriteLine($"Detected: {e.ChangeType} @ {e.FullPath} ({e.Name}");
+				MergePuzzleFiles(); //Merging all puzzles
 			};
 			fsw.Changed += fswChanged;
 
@@ -78,25 +94,23 @@ namespace Helpers
 		}
 
 
-		public List<ReadRes> GetMergedFileContent()
+		public List<ReadRes> GetSharedFiles()
 		{
-			var fileRes = GetMergeFilesShared().Select(ReadFile).ToList();
+			var fileRes = GetCodeFilesInPath(_sharedPath).Select(ReadFile).ToList();
 			return fileRes;
 		}
 
-		private string GetFullFilePath(string fileName)
-		{
-			return _sourcePath + fileName;
-		}
+		
 
+
+		//Read a single file and split the usings and the file from each other
 		private ReadRes ReadFile(string filePath) 
 		{
-			string fileToLook = GetFullFilePath(filePath);
-			if(!System.IO.File.Exists(fileToLook))
+			if(!System.IO.File.Exists(filePath))
 			{
-				throw new Exception($"Unknown file: {fileToLook}");
+				throw new Exception($"Unknown file: {filePath}");
 			}
-			var lines = System.IO.File.ReadAllLines(fileToLook);
+			var lines = System.IO.File.ReadAllLines(filePath);
 
 			var usingLines = new List<string>();
 			var codeLines = new List<string>();
@@ -120,14 +134,19 @@ namespace Helpers
 			};
 		}
 		
-		public IEnumerable<string> GetMergeFilesShared()
+		//Get the sources path based on the run path of the app (often bin/Debug).
+		//TODO: This assumes /bin/Debug and therefor a Mac/Linux environment for windows go find the \bin\Debug
+		private string GetSourcePathBasedOnRunPath(string runPath)
 		{
-			yield return "Shared/CodinGameProxyEngine.cs";
-			yield return "Shared/IGameEngine.cs";        
-			yield return "Shared/PuzzleMain.cs";
-			yield return "Shared/GameEngineBase.cs";
-			yield return "Shared/Position.cs"; 
-			yield return "Shared/StringBufferGameEngine.cs";
+			if(runPath.IndexOf("/bin/Debug/", StringComparison.OrdinalIgnoreCase) < 0) { return runPath; }
+			var determinedBase = runPath.Substring(0, runPath.IndexOf("/bin/Debug/"));
+			return determinedBase.EndsWith("/") ? determinedBase : determinedBase + "/";
+		}
+
+		private List<string> GetCodeFilesInPath(string path)
+		{
+			var files = System.IO.Directory.GetFiles(path);
+			return files.Where(f => f.EndsWith(".cs")).ToList();
 		}
 
 	}

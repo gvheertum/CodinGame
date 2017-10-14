@@ -17,8 +17,10 @@ namespace CodinGameExperiments
 
     class Program
     {	
-		private const string CurrentPuzzleFileForMerge = "Puzzles/05_ShadowsOfTheKnight.cs";
-		private const string CurrentMergeOutput = "Merged/MergedCodingFile.cs.merged";
+		private const string PuzzlePath = "Puzzles/";
+		private const string SharedPath = "Shared/";
+		private const string MergePath = "Merged/";
+
         static void Main(string[] args)
         {
 			Console.WriteLine("Puzzle solution");
@@ -36,8 +38,9 @@ namespace CodinGameExperiments
 				System.Console.WriteLine($"{a.Name}\t\t{a.Description}");
 			});
 			System.Console.WriteLine("Parameters:");
-			System.Console.WriteLine($"CurrentPuzzleFileForMerge \t\t {CurrentPuzzleFileForMerge}");
-			System.Console.WriteLine($"CurrentMergeOutput\t\t\t {CurrentMergeOutput}");
+			System.Console.WriteLine($"PuzzlePath \t\t {PuzzlePath}");
+			System.Console.WriteLine($"SharedPath\t\t {SharedPath}");
+			System.Console.WriteLine($"MergePath\t\t {MergePath}");
         }
 
 		private static RunAction GetRunAction(string action)
@@ -58,20 +61,19 @@ namespace CodinGameExperiments
 		{
 			System.Console.WriteLine("Running the merger");
 			var merger = GetFileMerger();
-			merger.WriteMergedFile(CurrentMergeOutput);
+			merger.MergePuzzleFiles();
 		}
 
 		private static void RunWatch()
 		{
 			var merger = GetFileMerger();
-			System.Console.WriteLine($"Watching {CurrentPuzzleFileForMerge} and writing changes to: {CurrentMergeOutput}");
-			merger.WatchMergeFile(CurrentMergeOutput);
+			System.Console.WriteLine($"Starting puzzle file watcher");
+			merger.WatchPuzzleFiles();
 		}
 
 		private static FileMerger GetFileMerger() 
 		{
-			System.Console.WriteLine($"Merging shared and {CurrentPuzzleFileForMerge}");
-			return new FileMerger(AppContext.BaseDirectory, CurrentPuzzleFileForMerge);
+			return new FileMerger(AppContext.BaseDirectory, PuzzlePath, SharedPath, MergePath);
 		}
 
 		private static void RunThereIsNoSpoonExample()
