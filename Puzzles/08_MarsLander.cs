@@ -12,11 +12,29 @@ using Shared;
  **/
 namespace Puzzles.MarsLander
 {
-
-	public class LanderData
+	public class LanderConditions
 	{
-		public int X { get; set; } //X pos of vesel
-		public int Y { get; set; } //Y pos of vesel
+		public LanderConditions(LanderData data)
+		{
+			Angle = data.Rotation == 0; //Needs to be in upright position
+			VSpeed = Math.Abs(data.VSpeed) <= 15; //20 is max, 15 is safe
+			HSpeed = Math.Abs(data.HSpeed) <= 15; //20 is max, 15 is safe
+		}
+
+		public bool Angle { get; private set; }
+		public bool HSpeed { get; private set; }
+		public bool VSpeed { get; private set; }
+
+		public bool AllClear 
+		{
+			get { return Angle && HSpeed && VSpeed; }
+		}
+	}
+
+	
+
+	public class LanderData : Position
+	{
 		public int HSpeed { get; set; } // the horizontal speed (in m/s), can be negative.
 		public int VSpeed { get; set; } // the vertical speed (in m/s), can be negative.
 		public int Fuel { get; set; }// the quantity of remaining fuel in liters.
@@ -28,11 +46,13 @@ namespace Puzzles.MarsLander
 		}
 	}
 
-	public class Player
+	public class Player : PuzzleMain
 	{
+		protected Player(IGameEngine gameEngine) : base(gameEngine) { }
+
 		static void Main(string[] args)
 		{
-			var self = new Player();
+			var self = new Player(new CodingGameProxyEngine());
 			self.Run();
 		}
 
@@ -42,18 +62,24 @@ namespace Puzzles.MarsLander
 			Log($"Got {mapPos.Count} map positions");
 			
 			LanderData landerData = null; 
+			LanderConditions conditions = null;
 			// game loop
 			while (true)
 			{
-				landerData = GetLanderDataFromString(ReadInput());
-
-				// Write an action using Console.WriteLine()
-				// To debug: Console.Error.WriteLine("Debug messages...");
-
-
-				// 2 integers: rotate power. rotate is the desired rotation angle (should be 0 for level 1), power is the desired thrust power (0 to 4).
-				Console.WriteLine("0 3");
+				landerData = GetLanderDataFromString(ReadLine());
+				conditions = new LanderConditions(landerData);
+				//We can take the height into consideration to see when we need to power up again, but for now simple dumb landing pattern
+				int powerPerc = conditions.VSpeed ? 0 : 4; //If our Vspeed is okay we disable truster, otherwise we start it back up
+				WriteLine(GetAction(0,powerPerc));
 			}
+		}
+
+		
+		private string GetAction(int rotatePower, int thrustPower)
+		{
+			// 2 integers: rotate power. rotate is the desired rotation angle (should be 0 for level 1), power is the desired thrust power (0 to 4).
+			Log($"Peforming-> rot {rotatePower} thrust {thrustPower}");
+			return $"{rotatePower} {thrustPower}";
 		}
 
 		private LanderData GetLanderDataFromString(string input)
@@ -80,10 +106,10 @@ namespace Puzzles.MarsLander
 		{
 			List<Position> positions = new List<Position>();
 			string[] inputs;
-			int surfaceN = int.Parse(ReadInput()); // the number of points used to draw the surface of Mars.
+			int surfaceN = int.Parse(ReadLine()); // the number of points used to draw the surface of Mars.
 			for (int i = 0; i < surfaceN; i++)
 			{
-				inputs = ReadInput().Split(' ');
+				inputs = ReadLine().Split(' ');
 				int landX = int.Parse(inputs[0]); // X coordinate of a surface point. (0 to 6999)
 				int landY = int.Parse(inputs[1]); // Y coordinate of a surface point. By linking all the points together in a sequential fashion, you form the surface of Mars.
 				positions.Add(new Position() { X = landX, Y = landY, PositionIndex = i});
@@ -91,24 +117,5 @@ namespace Puzzles.MarsLander
 			return positions;
 		}
 
-		List<string> readLines = new List<string>();
-		private string ReadInput() //Allows us to override for manual input
-		{
-			var line = Console.ReadLine();
-			Log($">{line}");
-			readLines.Add(line);
-			return line;
-		}
-
-		private void LogAllInputStrings()
-		{
-			Log("Inputted data:");
-			readLines.ForEach(l => Log(l));
-		}
-
-		private void Log(object obj)
-		{
-			Console.Error.WriteLine(obj);
-		}
 	}
 }
