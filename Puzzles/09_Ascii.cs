@@ -10,6 +10,7 @@ using Shared;
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
  **/
+//https://www.codingame.com/ide/puzzle/ascii-art
 namespace Puzzles.AsciiGenerator
 {
 	public class AsciiLetter
@@ -68,10 +69,13 @@ namespace Puzzles.AsciiGenerator
 
 			// Write an action using Console.WriteLine()
 			// To debug: Console.Error.WriteLine("Debug messages...");
-
-
-
-			WriteLine("answer");
+			
+			//Get the chars to draw, and iterate each line of those chars
+			var charsToDraw = GetDrawingCharacters(textToWrite, charList);
+			for(int i = 0; i < charHeight; i++)
+			{
+				WriteLine(RenderLineForLetters(i, charsToDraw));
+			}
 		}
 
 		private List<AsciiLetter> GenerateCharacters(int charH, int charW) 
@@ -82,7 +86,35 @@ namespace Puzzles.AsciiGenerator
 
 		private void SplitLineDataOverCharacters(string line, int charWidth, List<AsciiLetter> characters)
 		{
+			if(line.Length < characters.Count * charWidth) { throw new Exception("The line length is not matching the expected length"); }
 			//line.Split
+			
+			for(int i = 0; i < characters.Count; i++)
+			{
+				string res = line.Substring(i * charWidth, charWidth);
+				characters[i].AddLineData(res);	
+			}
+		}
+
+		private List<AsciiLetter> GetDrawingCharacters(string input, List<AsciiLetter> knownLetters)
+		{
+			List<AsciiLetter> letters = new List<AsciiLetter>();
+			TextHelper th = new TextHelper(true);
+			foreach(char i in input)
+			{
+				int idx = th.GetIndexOfChar($"{i}");
+				var letterToUse = knownLetters[idx];
+				Log($"Char {i} has idx {idx} and represented by {letterToUse.Character}");
+				letters.Add(letterToUse);
+			}
+			return letters;
+		}
+
+		private string RenderLineForLetters(int lineIdx, List<AsciiLetter> letters)
+		{
+			StringBuilder sb = new StringBuilder();
+			letters.ForEach(l => sb.Append(l.GetLineData(lineIdx)));
+			return sb.ToString();
 		}
 	}
 }
