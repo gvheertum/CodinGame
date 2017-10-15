@@ -86,9 +86,13 @@ namespace Helpers
 				Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss")}: detected change");
 				System.Console.WriteLine($"Detected: {e.ChangeType} @ {e.FullPath} ({e.Name}");
 				MergePuzzleFiles(); //Merging all puzzles
+				Console.Beep();
 			};
 			fsw.Changed += fswChanged;
-
+			
+			System.Console.WriteLine("Starting initial merge");
+			fswChanged.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, _sourcePath, "./")); 
+			
 			Console.WriteLine($"Waiting for changes");			
 			while(true) { fsw.WaitForChanged(WatcherChangeTypes.Changed); }
 		}
