@@ -25,5 +25,7 @@
     <Content Include="Shared\Position.cs" />
     <Content Include="Shared\GameEngineBase.cs" />
     <Content Include="Helpers\FileMerger.cs" />
+    <Content Include="Puzzles\09_Ascii.cs" />
+    <Content Include="Shared\TextHelper.cs" />
   </ItemGroup>
 </Project>
