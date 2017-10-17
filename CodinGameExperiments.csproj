@@ -27,5 +27,7 @@
     <Content Include="Helpers\FileMerger.cs" />
     <Content Include="Puzzles\09_Ascii.cs" />
     <Content Include="Shared\TextHelper.cs" />
+    <Content Include="Puzzles\10_Chuck.cs" />
+    <Content Include="Puzzles\11_Mime.cs" />
   </ItemGroup>
 </Project>
