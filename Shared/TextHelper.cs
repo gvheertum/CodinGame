@@ -26,6 +26,12 @@ namespace Shared
 			}
 		}
 
+		public int GetCharNumber(char character)
+		{
+			var byteRes = System.Text.ASCIIEncoding.ASCII.GetBytes(new char[] { character});
+			return byteRes[0];
+		}
+
 		public int GetIndexOfChar(string character) 
 		{
 			string charString = GetAllCharacters();

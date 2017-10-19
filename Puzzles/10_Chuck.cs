@@ -49,8 +49,18 @@ So CC is coded as: 0 0 00 0000 0 000 00 0000 0 00
  **/
 namespace Puzzles.Chuck
 {
+	public class CharWithBitString
+	{
+		public char Character { get; set; }
+		public string BitMask { get; set; } 
+		public override string ToString() 
+		{
+			return $"{Character} -> ({BitMask})";
+		}
+	}
 	public class Solution : Shared.PuzzleMain
 	{
+
 		protected Solution(IGameEngine gameEngine) : base(gameEngine) { }
 
 		static void Main(string[] args)
@@ -62,10 +72,22 @@ namespace Puzzles.Chuck
 		public void Run()
 		{
 			var msg = ReadLine();
-
+			var res = ParseInput(msg);
+			res.ForEach(r => Log(r));
 			WriteLine("my output");
 		}
 
+		private List<CharWithBitString> ParseInput(string input)
+		{
+			BitHelper bh = new BitHelper(7);
+			TextHelper th = new TextHelper(false);
+			List<CharWithBitString> res = new List<CharWithBitString>();
+			foreach(char c in input) 
+			{
+				res.Add(new CharWithBitString() { Character = c, BitMask = bh.GetBitStringForValue(th.GetCharNumber(c)) });
+			}
+			return res;
+		}
 		
 	}
 }

@@ -29,5 +29,9 @@
     <Content Include="Shared\TextHelper.cs" />
     <Content Include="Puzzles\10_Chuck.cs" />
     <Content Include="Puzzles\11_Mime.cs" />
+    <Content Include="Shared\BitHelpers.cs" />
+    <Content Include="ProgramRunners\BatmanRunner.cs" />
+    <Content Include="ProgramRunners\SpoonRunner.cs" />
+    <Content Include="ProgramRunners\TestRunner.cs" />
   </ItemGroup>
 </Project>
