@@ -72,9 +72,16 @@ namespace Puzzles.Chuck
 		public void Run()
 		{
 			var msg = ReadLine();
-			var res = ParseInput(msg);
-			res.ForEach(r => Log(r));
-			WriteLine("my output");
+			var charactersWithBitMaps = ParseInput(msg);
+			Log("Bitmask result");
+			charactersWithBitMaps.ForEach(r => Log(r));
+
+			//Combine the chars and chop them like chuck
+			var fullString = ComposeFullString(charactersWithBitMaps);
+			Log($"Full bitstring: {fullString}");
+			var chopped = MakeChop(fullString);
+
+			WriteLine(chopped);
 		}
 
 		private List<CharWithBitString> ParseInput(string input)
@@ -89,5 +96,35 @@ namespace Puzzles.Chuck
 			return res;
 		}
 		
+		private string ComposeFullString(List<CharWithBitString> items)
+		{
+			return string.Join("", items.Select(i => i.BitMask));
+		}
+		
+		private string MakeChop(string originalString)
+		{
+			Log($"Original string: {originalString}");
+			StringBuilder sb = new StringBuilder();
+			char? currCharType = null;
+			foreach(var c in originalString) 
+			{
+				//If we are working on this char we just echo a plain 0 (indicating that this is an aditional of the curr)
+				if(currCharType == c) { sb.Append("0"); continue; }
+
+				if(currCharType != null) { sb.Append(" "); } //Space between the indicator, but not the first one
+				sb.Append(GetCharIndicator(c)); //We start a new range, so set a new indicator
+				sb.Append(" "); //Space between the indicator
+				sb.Append("0"); //We add ourself to the list
+				currCharType = c; //Remember that we were working on this char
+			}
+
+			return sb.ToString();
+		}
+
+		private string GetCharIndicator(char ch) 
+		{
+			return ch == '1' ? "0" : "00";
+		}
+
 	}
 }
