@@ -46,7 +46,7 @@ namespace Puzzles.ShadowsOfTheKnight
 
 			//Batmans is already in the grid, so add his pos
 			jumps.Add(batmanPos.GetCopy());
-			
+			Log("**RUNNING**");
 			// game loop
 			while (IsRunning())
 			{
@@ -96,15 +96,17 @@ namespace Puzzles.ShadowsOfTheKnight
 		{
 			Log($"Finding a split point between: {prev} and {curr}");
 			
-			var xJumpPrev = Math.Abs(prev.X - curr.X);
-			var yJumpPrev = Math.Abs(prev.Y - curr.Y);
-			
-			var middledXJump = xJumpPrev / 2;
-			var middledYJump = yJumpPrev / 2;
-			if(middledXJump == 0) { Log("X jump was calculated to 0, forced to 1"); middledXJump = 1; }
-			if(middledYJump == 0) { Log("Y jump was calculated to 0, forced to 1"); middledYJump = 1; }
+			var xJumpPrev = Math.Max(prev.X, curr.X) - Math.Min(prev.X, curr.X);
+			var yJumpPrev = Math.Max(prev.Y, curr.Y) - Math.Min(prev.Y, curr.Y);
+			Log($"Previous jump distance -> x:{xJumpPrev} y:{yJumpPrev}");
 
-			Log($"Last jump delta => x:{xJumpPrev} y:{yJumpPrev}, midPoint delta => x:{middledXJump} y:{middledYJump}");
+			int middledXJump = xJumpPrev / 2;//(int)Math.Ceiling(xJumpPrev / 2.0m);
+			int middledYJump = yJumpPrev / 2;//(int)Math.Ceiling(yJumpPrev / 2.0m);
+			Log($"Midpoint of jump distance -> x:{middledXJump} y:{middledYJump}");
+
+			if(middledXJump == 0 && (BombIsLeft(direction) || BombIsRight(direction))) { Log("X jump was calculated to 0, forced to 1"); middledXJump = 1; }
+			if(middledYJump == 0 && (BombIsUp(direction) || BombIsDown(direction))) { Log("Y jump was calculated to 0, forced to 1"); middledYJump = 1; }
+
 			var newPos = curr.GetCopy(); //Start with curr as aiming point
 			if(BombIsLeft(direction)) { newPos.X = newPos.X - middledXJump; }
 			if(BombIsRight(direction)) { newPos.X = newPos.X + middledXJump; }
@@ -148,10 +150,10 @@ namespace Puzzles.ShadowsOfTheKnight
 			Log("Force step is done, but there is no force needed");
 			return step;
 		}
+
 		//Determine the next step based on direction: UD - LR and position of batman
 		//The current implementation just lets batman jump in the direction of the bomb.
 		//This is a simple quick solve, a smart algorithm with search/smart guessing is next.
-		
 		private Position CalculateStepByStepPosition(string direction, Position batmanPos)
 		{   
 			int yDelta = 0;

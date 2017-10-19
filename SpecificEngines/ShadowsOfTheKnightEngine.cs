@@ -64,6 +64,8 @@ namespace SpecificEngines
 
 		public void WriteLine(string resp)
 		{
+			if(_turns <= 0) { throw new Exception("no turns left!"); }
+			
 			var newPos = new Position(int.Parse(resp.Split(new [] { ' '})[0]), int.Parse(resp.Split(new [] { ' '})[1]));
 			_playerPos = newPos;
 			_turns--;
