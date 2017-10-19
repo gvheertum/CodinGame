@@ -33,5 +33,6 @@
     <Content Include="ProgramRunners\BatmanRunner.cs" />
     <Content Include="ProgramRunners\SpoonRunner.cs" />
     <Content Include="ProgramRunners\TestRunner.cs" />
+    <Content Include="Puzzles\12_Horses.cs" />
   </ItemGroup>
 </Project>
