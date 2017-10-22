@@ -21,12 +21,18 @@ namespace Helpers.TestRunner
 
 		private PuzzleTestCaseResult RunSingleTest(PuzzleTestCase testCase)
 		{
-			var ptcs = new PuzzleTestCaseResult() { CaseName = testCase.CaseName, Success = true, ExpectedResult = testCase.ExpectedOutput };
+			var ptcs = new PuzzleTestCaseResult()
+			{ 
+				CaseName = testCase.CaseName,
+				Success = true,
+				ExpectedResult = string.Join(Environment.NewLine, testCase.ExpectedOutput) 
+			};
+			
 			try
 			{
 				var bufferGameEngine = new StringBufferGameEngine(testCase.Input);
 				_engineInit(bufferGameEngine).Run();
-				var response = bufferGameEngine.ReadBackWrittenLines().LastOrDefault();
+				var response = string.Join(Environment.NewLine, bufferGameEngine.ReadBackWrittenLines());
 				ptcs.ReceivedResult = response;
 				if(!string.Equals(ptcs.ExpectedResult, ptcs.ReceivedResult, StringComparison.OrdinalIgnoreCase))
 				{

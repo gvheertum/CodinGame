@@ -56,8 +56,8 @@ namespace CodinGameExperiments
 			yield return new RunAction() { Name = "merge", Description = "Merge the files", Action = RunMerge };
 			yield return new RunAction() { Name = "watch", Description = "Watch a file for changes and merge", Action = RunWatch };
 			
-			yield return new RunAction() { Name = "test-batman", Description = "Run batman test-case", Action = new Batman().RunBatman };
-			yield return new RunAction() { Name = "test-spoon", Description = "Run spoon test-case", Action = new Spoon().RunSpoon };
+			yield return new RunAction() { Name = "test-batman", Description = "Run batman test-case", Action = new Batman().RunBatman }; //TODO: Batman should also go in some kind of base testing thingy (taking a custom engine)
+			yield return new RunAction() { Name = "test-spoon", Description = "Run spoon test-case", Action = new Spoon().RunPuzzleTests };
 			yield return new RunAction() { Name = "test-defib", Description = "Run defib test-case", Action = new Defibrillators().RunPuzzleTests };
 			yield return new RunAction() { Name = "test-helpers", Description = "Run test cases for helpers", Action = new SharedElementTestRunner().RunHelperTests };
 		}

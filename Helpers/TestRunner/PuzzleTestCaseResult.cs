@@ -11,11 +11,11 @@ namespace Helpers.TestRunner
 		public override string ToString()
 		{
 			string caseRes = "";
-			caseRes += Success ? "+" : "-";
-			caseRes += "\t";
+			caseRes += Success ? "✔" : "-";
+			caseRes += " ";
 			caseRes += CaseName;
 			caseRes += "\t";
-			caseRes += Message ?? "-";
+			caseRes += Message ?? "";
 			return caseRes;
 		}
 	}

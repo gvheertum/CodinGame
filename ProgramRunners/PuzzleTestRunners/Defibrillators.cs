@@ -21,7 +21,7 @@ namespace ProgramRunners.PuzzleTestRunners
 			yield return new PuzzleTestCase() 
 			{ 
 				CaseName = "Example",  
-				ExpectedOutput = "Maison de la Prevention Sante", 
+				ExpectedOutput = new List<string>() { "Maison de la Prevention Sante" }, 
 				Input = new List<string> 
 				{ 
 					"3,879483",

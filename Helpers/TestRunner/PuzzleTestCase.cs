@@ -6,6 +6,6 @@ namespace Helpers.TestRunner
 	{
 		public string CaseName {get;set;}
 		public List<string> Input {get;set;} = new List<string>();
-		public string ExpectedOutput { get; set; }
+		public List<string> ExpectedOutput { get; set; } = new List<string>();
 	}
 }

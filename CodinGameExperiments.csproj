@@ -49,5 +49,6 @@
     <Content Include="ProgramRunners\PuzzleTestRunners\PuzzleTestRunnerDefibrillators.cs" />
     <Content Include="ProgramRunners\PuzzleTestRunners\Batman.cs" />
     <Content Include="ProgramRunners\PuzzleTestRunners\PuzzleTestRunnerBatman.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunners\Spoon.cs" />
   </ItemGroup>
 </Project>
