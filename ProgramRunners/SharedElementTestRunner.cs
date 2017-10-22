@@ -4,7 +4,7 @@ using Shared;
 namespace ProgramRunners
 {
 
-	public class TestRunner
+	public class SharedElementTestRunner
 	{
 
 		public void RunHelperTests()

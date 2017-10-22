@@ -1,8 +1,8 @@
 using Shared;
 
-namespace ProgramRunners
+namespace ProgramRunners.PuzzleTestRunners
 {
-	public class SpoonRunner
+	public class Spoon
 	{
 		public void RunSpoon()
 		{

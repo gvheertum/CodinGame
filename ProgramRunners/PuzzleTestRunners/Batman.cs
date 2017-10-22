@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using Shared;
 using SpecificEngines;
 
-namespace ProgramRunners
+namespace ProgramRunners.PuzzleTestRunners
 {
-	public class BatmanRunner
+	public class Batman
 	{
 		public void RunBatman()
 		{
