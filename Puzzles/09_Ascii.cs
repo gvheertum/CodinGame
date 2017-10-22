@@ -50,7 +50,7 @@ namespace Puzzles.AsciiGenerator
 			asciiPuzzle.Run();
 		}
 
-		public void Run()
+		public override void Run()
 		{
 			int charWidth = int.Parse(ReadLine());
 			int charHeight = int.Parse(ReadLine());

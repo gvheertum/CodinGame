@@ -32,13 +32,12 @@ The difference D between the two closest strengths. D is an integer greater than
 
 		static void Main(string[] args)
 		{
-			//new Solution(new CodingGameProxyEngine()).RunSimple();
-			new Solution(new CodingGameProxyEngine()).RunSmart();
+			new Solution(new CodingGameProxyEngine()).Run();
 		}
 
 		//For each horse check if we have a distance smaller than the current, if 0 we close our loop (since we can't go lower)
 		int MaxHorseStrength = 10000000;
-		public void RunSmart()
+		public override void Run()
 		{
 			int nrOfHorses = int.Parse(ReadLine());
 			bool[] horseStrengthsHitList = new bool[MaxHorseStrength]; //Whether we hit a certain strength somewhere

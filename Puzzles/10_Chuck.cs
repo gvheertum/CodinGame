@@ -69,7 +69,7 @@ namespace Puzzles.Chuck
 			s.Run();
 		}
 
-		public void Run()
+		public override void Run()
 		{
 			var msg = ReadLine();
 			var charactersWithBitMaps = ParseInput(msg);

@@ -40,7 +40,7 @@ namespace Puzzles.Mime
 			var sol = new Solution(new Shared.CodingGameProxyEngine());
 			sol.Run();
 		}
-		public void Run()
+		public override void Run()
 		{
 			int nrOfMimeTypes = int.Parse(ReadLine()); // Number of elements which make up the association table.
 			int nrOfFiles = int.Parse(ReadLine()); // Number Q of file names to be analyzed.

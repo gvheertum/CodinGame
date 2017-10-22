@@ -21,6 +21,7 @@ namespace Shared
 			Log($"Running with game engine: {_gameEngine}");
 		}
 
+		public abstract void Run();
 
 		//Exposes the running flag of the game engine
 		protected bool IsRunning() { return _gameEngine.IsRunning(); }

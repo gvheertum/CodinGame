@@ -56,7 +56,7 @@ namespace Puzzles.MarsLander
 			self.Run();
 		}
 
-		private void Run() 
+		public override void Run() 
 		{
 			var mapPos = GetMapPoints();
 			Log($"Got {mapPos.Count} map positions");

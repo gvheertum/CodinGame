@@ -17,9 +17,16 @@ namespace Shared
 			_buffer = buffer.ToList();
 		}
 		
+		private List<string> _writtenLines = new List<string>();
 		public void WriteLine(string resp)
 		{
-			//Response is ignored
+			_writtenLines.Add(resp);
+		}
+
+		//Get a list of responses done to this engine
+		public List<string> ReadBackWrittenLines()
+		{
+			return _writtenLines;
 		}
 
 		public string ReadLine()

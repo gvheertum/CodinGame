@@ -77,7 +77,7 @@ namespace Puzzles.ThereIsNoSpoon
 			new Player(null).Run();
 		}
 
-		public void Run()
+		public override void Run()
 		{
 			List<string> fieldLines = new List<string>();
 

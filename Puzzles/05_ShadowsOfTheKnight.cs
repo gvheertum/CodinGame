@@ -29,7 +29,7 @@ namespace Puzzles.ShadowsOfTheKnight
 		{
 			new Player(null).Run();
 		}
-		public void Run()
+		public override void Run()
 		{
 			string[] inputs;
 			inputs = ReadLine().Split(' ');

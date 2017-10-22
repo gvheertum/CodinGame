@@ -32,7 +32,22 @@
     <Content Include="Shared\BitHelpers.cs" />
     <Content Include="ProgramRunners\BatmanRunner.cs" />
     <Content Include="ProgramRunners\SpoonRunner.cs" />
-    <Content Include="ProgramRunners\TestRunner.cs" />
     <Content Include="Puzzles\12_Horses.cs" />
+    <Content Include="Puzzles\13_ Defibrillators.cs" />
+    <Content Include="Helpers\PuzzleTest.cs" />
+    <Content Include="Helpers\TestRunner\PuzzleTest.cs" />
+    <Content Include="Helpers\TestRunner\PuzzleTestCase.cs" />
+    <Content Include="Helpers\TestRunner\PuzzleTestCaseResult.cs" />
+    <Content Include="ProgramRunners\SharedElementTestRunner.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunnerBase.cs" />
+    <Content Include="Helpers\TestRunner\PuzzleTestRunner.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunnerDefibrillators.cs" />
+    <Content Include="ProgramRunners\PuzzleTestDefibrillators.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunnerBatman.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunnerSpoon.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunners\Defibrillators.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunners\PuzzleTestRunnerDefibrillators.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunners\Batman.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunners\PuzzleTestRunnerBatman.cs" />
   </ItemGroup>
 </Project>
