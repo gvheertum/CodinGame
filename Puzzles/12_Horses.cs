@@ -32,9 +32,71 @@ The difference D between the two closest strengths. D is an integer greater than
 
 		static void Main(string[] args)
 		{
-			new Solution(new CodingGameProxyEngine()).Run();
+			//new Solution(new CodingGameProxyEngine()).RunSimple();
+			new Solution(new CodingGameProxyEngine()).RunSmart();
 		}
-		public void Run()
+
+		//For each horse check if we have a distance smaller than the current, if 0 we close our loop (since we can't go lower)
+		int MaxHorseStrength = 10000000;
+		public void RunSmart()
+		{
+			int nrOfHorses = int.Parse(ReadLine());
+			bool[] horseStrengthsHitList = new bool[MaxHorseStrength]; //Whether we hit a certain strength somewhere
+			List<int> horseStrengths = new List<int>();
+
+			Log($"Processing {nrOfHorses} horses");
+			int? currLowestDiff = null;
+			
+			for (int horseIdx = 0; horseIdx < nrOfHorses; horseIdx++)
+			{
+				int horseStrength = int.Parse(ReadLine());
+				horseStrengths.Add(horseStrength);
+
+				if(horseIdx == 1) //On the first 2 horses we set the first delta
+				{ 
+					currLowestDiff = Math.Abs(horseStrengths[0] - horseStrengths[1]);
+					Log($"Setting intial strength diff to {currLowestDiff}");
+				}
+				else //Check if we can find a lower distance
+				{
+					currLowestDiff = GetLowestDistanceForHorseStrength(currLowestDiff, horseIdx, horseStrength, horseStrengthsHitList);
+				}
+
+				//If we hit 0 we can stop looking!
+				if(currLowestDiff == 0) 
+				{
+					Log("Found distance of 0, so terminating the loop");
+				}
+
+				//Add the item to the list now (if we already had it there it's not good since we will always have a 0
+				horseStrengthsHitList[horseStrength] = true;
+			}
+
+			Log($"Lowest difference: {currLowestDiff??0}");
+			Console.WriteLine($"{currLowestDiff??0}");
+		}
+
+		private int? GetLowestDistanceForHorseStrength(int? currLowest, int horseIdx, int currStrengths, bool[] foundStrengths)
+		{
+			if(currLowest == null) { return null; } //If there is no current lowest we are not going to loop
+			int? foundLowest = currLowest;
+
+			//Check if we can find an even lower diff for this speed
+			for(int diffToLookFor = currLowest.Value; diffToLookFor >= 0; diffToLookFor--)
+			{
+				int speedLookup1 = currStrengths - diffToLookFor;
+				int speedLookup2 = currStrengths + diffToLookFor;
+				if(foundStrengths[speedLookup1] || foundStrengths[speedLookup2]) 
+				{
+					Log($"Found lowest value of {diffToLookFor} (curr: {currStrengths})"); 
+					foundLowest = diffToLookFor;
+				}
+			}
+			return foundLowest;
+		}
+
+		// Simple loop solution (just look for each horse what the lowest horse diff is)
+		public void RunSimple()
 		{
 			int nrOfHorses = int.Parse(ReadLine());
 			List<int> horses = new List<int>();
