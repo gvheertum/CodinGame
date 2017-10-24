@@ -52,5 +52,6 @@
     <Content Include="ProgramRunners\PuzzleTestRunners\Spoon.cs" />
     <Content Include="Shared\LongLatPosition.cs" />
     <Content Include="Shared\DistanceCalculator.cs" />
+    <Content Include="Puzzles\14_Skynet.cs" />
   </ItemGroup>
 </Project>
