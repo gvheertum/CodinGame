@@ -50,5 +50,7 @@
     <Content Include="ProgramRunners\PuzzleTestRunners\Batman.cs" />
     <Content Include="ProgramRunners\PuzzleTestRunners\PuzzleTestRunnerBatman.cs" />
     <Content Include="ProgramRunners\PuzzleTestRunners\Spoon.cs" />
+    <Content Include="Shared\LongLatPosition.cs" />
+    <Content Include="Shared\DistanceCalculator.cs" />
   </ItemGroup>
 </Project>
