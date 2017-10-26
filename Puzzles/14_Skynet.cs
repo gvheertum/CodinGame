@@ -32,7 +32,7 @@ namespace Puzzles.Skynet
 
 		public override void Run()
 		{
-
+			//_runSilent = true; // -> Enable this when running, since the output will slow stuff down severely
 			string[] inputs;
 			inputs = ReadLine().Split(' ');
 			
@@ -48,21 +48,28 @@ namespace Puzzles.Skynet
 			//Flag exits
 			int nrOfExitGates = int.Parse(inputs[2]); // the number of exit gateways
 			FlagExitNodes(nodeDictionary, nrOfExitGates);
-			
+			var exitNodes = nodes.Where(n => n.IsExitNode).ToList();
 			
 			
 
 			// game loop
 			while (IsRunning())
 			{
-				int SI = int.Parse(ReadLine()); // The index of the node on which the Skynet agent is positioned this turn
-
+				int skynetNodeIndex = int.Parse(ReadLine()); // The index of the node on which the Skynet agent is positioned this turn
+				Log($"Skynet at position: {skynetNodeIndex}");
+				var availableRoutesForSkyNet = GetPossibleRoutesForSkynet(nodeDictionary, nodes, exitNodes, skynetNodeIndex);
 				// Write an action using WriteLine()
 				// To debug: Error.WriteLine("Debug messages...");
-
+				Log("Found the following routes for skynet:");
+				availableRoutesForSkyNet.ForEach(r => Log(r));
 
 				// Example: 0 1 are the indices of the nodes you wish to sever the link between
-				WriteLine("0 1");
+				var cutOff = MakeSuggestionForCutOff(availableRoutesForSkyNet, nodes);
+				Log($"Cutting line: {cutOff}");
+				WriteLine($"{cutOff}");
+
+				//Remove the node link after the connection is broken
+				RemoveNodeLinks(nodeDictionary, cutOff.Index1, cutOff.Index2);
 			}
 		}
 
@@ -100,9 +107,52 @@ namespace Puzzles.Skynet
 			}
 		}
 
-		private void CalculateRoutesBetweenPoint(SkyNetNode from, SkyNetNode to, int maxSteps)
+		private List<NodeRoute<SkyNetNode>> GetPossibleRoutesForSkynet(Dictionary<int, SkyNetNode> nodes, List<SkyNetNode> allNodes, List<SkyNetNode> exitNodes, int skynetNodePos)
 		{
+			var skynetNode = nodes[skynetNodePos];
+			var routeHelper = new RouteCalculator<SkyNetNode, SkyNetNode>();
+			List<Node<SkyNetNode>> nodesAsSkyNetNode = allNodes.Select(n => n as Node<SkyNetNode>).ToList(); //generics and casting :(
+			List<NodeRoute<SkyNetNode>> availableRoutes = new List<NodeRoute<SkyNetNode>>();
+			
+			//Query the paths to the exit nodes
+			exitNodes.ForEach(exitNode => {
+				var routes = routeHelper.FilterRoutesOnDestinationReached(routeHelper.CalculateRoutes(nodesAsSkyNetNode, skynetNode, exitNode, 5));
+				availableRoutes.AddRange(routes.Select(r => r));
+			});
+			
+			return availableRoutes;
+		}
+		private class CutOff
+		{
+			public int Index1 {get;set;}
+			public int Index2 {get;set;}
 
+			public override string ToString()
+			{
+				return $"{Index1} {Index2}";
+			}
+		}
+		private CutOff MakeSuggestionForCutOff(List<NodeRoute<SkyNetNode>> routesForSkyNet, List<SkyNetNode> nodes)
+		{
+			var routeToBreak = routesForSkyNet.OrderBy(r => r.RouteLength).FirstOrDefault();
+			if(routeToBreak == null) { return GetRandomCut(nodes); }
+
+			return new CutOff() 
+			{
+				Index1 = routeToBreak.NodesToTake.First().NodeIndex,
+				Index2 = routeToBreak.NodesToTake.Skip(1).First().NodeIndex
+			};
+		}
+
+		private CutOff GetRandomCut(List<SkyNetNode> nodes) 
+		{
+			Log("!! The system wants a cut, but there seems to be no realistic route to the exit node, so server a random route");
+			var nodeToBreak = nodes.First(n => n.LinkedNodes.Any());
+			return new CutOff()
+			{
+				Index1 = nodeToBreak.NodeIndex,
+				Index2 = nodeToBreak.LinkedNodes.First().NodeIndex
+			};
 		}
 
 		private void FlagExitNodes(Dictionary<int, SkyNetNode> nodes, int nrOfExitGates)
@@ -113,6 +163,18 @@ namespace Puzzles.Skynet
 				Log($"Node {nodeId} -> Exit");
 				nodes[nodeId].IsExitNode = true;
 			}
+		}
+
+		private void RemoveNodeLinks(Dictionary<int, SkyNetNode> nodes, int idx1, int idx2)
+		{	
+			RemoveNodeFromNode(nodes[idx1], nodes[idx2]);
+			RemoveNodeFromNode(nodes[idx2], nodes[idx1]);
+		}
+
+		private void RemoveNodeFromNode(SkyNetNode node, SkyNetNode node2)
+		{
+			node.LinkedNodesIndex.Remove(node2.NodeIndex);
+			node.LinkedNodes.Remove(node2);
 		}
 	}
 }

@@ -13,6 +13,7 @@ namespace Shared
 	// Logging: Console.Error.Log -> Log
 	public abstract class PuzzleMain
 	{
+		protected bool _runSilent = false;
 		private IGameEngine _gameEngine;
 		protected PuzzleMain(IGameEngine gameEngine)
 		{
@@ -61,7 +62,10 @@ namespace Shared
 
 		protected void Log(object obj)
 		{
-			Console.Error.WriteLine(obj);
+			if(!_runSilent) 
+			{
+				Console.Error.WriteLine(obj);
+			}
 		}
 	}
 }

@@ -7,7 +7,7 @@ namespace Shared
 	{
 		public List<Node<T>> NodesToTake { get; set; } = new List<Node<T>>();
 		public bool DestinationReached {get;set;}
-		public int? RouteLength { get { return NodesToTake.Count; } }
+		public int? RouteLength { get { return NodesToTake.Count - 1; } }
 		public Node<T> NodeStart { get; set; }
 		public Node<T> NodeEnd { get; set; }
 		public NodeRoute<T> CopyRoute() 
@@ -24,7 +24,7 @@ namespace Shared
 		public override string ToString()
 		{
 			var steps = string.Join("->", NodesToTake.Select(n => n.NodeIndex));
-			return $"Route from {NodeStart.NodeIndex} to {NodeEnd.NodeIndex}|Reached? {DestinationReached} | steps {steps} ({RouteLength}) ";
+			return $"Route from {NodeStart.NodeIndex} to {NodeEnd.NodeIndex} | Reached? {DestinationReached} | steps {steps} ({RouteLength}) ";
 		}
 	}
 }
