@@ -4,7 +4,7 @@ using System.Linq;
 namespace Shared
 {
 
-	public class RouteCalculator<T, TT> where TT : Node<T>
+	public class RouteCalculator<TT,T> where TT : Node<T> where T : Node<T>
 	{
 		public List<NodeRoute<T>> CalculateRoutes(List<Node<T>> nodes, Node<T> from, Node<T> to, int maxIterations)
 		{
@@ -18,13 +18,16 @@ namespace Shared
 		{
 			if(currIteration >= maxIterations) { return; }
 			
-			var currStep = currRoute?.CopyRoute() ?? CreateInitialRoute(currNode);
-			currStep.NodesToTake.Add(currNode); //Add our node to the list of naviation nodes
+			currRoute = currRoute?.CopyRoute() ?? CreateInitialRoute(currNode);
+			currRoute.NodesToTake.Add(currNode); //Add our node to the list of naviation nodes
 			currRoute.DestinationReached = to.NodeIndex == currNode.NodeIndex;
-			if(currRoute.DestinationReached) { return; } //We are done, stop executing sub elements
-
+			routeList.Add(currRoute);
+			
+			//We are done, stop executing sub elements
+			if(currRoute.DestinationReached) { return; }
+		
 			//Check if we can reach by using our child nodes
-			currNode.LinkedNodes.ForEach(n => NavigateFromNodeToNode(routeList, currStep, n, to, maxIterations, currIteration +1));
+			currNode.LinkedNodes.ForEach(n => NavigateFromNodeToNode(routeList, currRoute, n, to, maxIterations, currIteration +1));
 		}
 
 		private NodeRoute<T> CreateInitialRoute(Node<T> node)

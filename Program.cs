@@ -60,6 +60,7 @@ namespace CodinGameExperiments
 			yield return new RunAction() { Name = "test-spoon", Description = "Run spoon test-case", Action = new Spoon().RunPuzzleTests };
 			yield return new RunAction() { Name = "test-defib", Description = "Run defib test-case", Action = new Defibrillators().RunPuzzleTests };
 			yield return new RunAction() { Name = "test-helpers", Description = "Run test cases for helpers", Action = new SharedElementTestRunner().RunHelperTests };
+			yield return new RunAction() { Name = "test-routes", Description = "Run test cases for routes", Action = new RouteTestRunner().RunRouteTests };
 		}
 
 		private static void RunMerge()

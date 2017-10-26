@@ -20,5 +20,11 @@ namespace Shared
 				NodeEnd = NodeEnd
 			};
 		}
+
+		public override string ToString()
+		{
+			var steps = string.Join("->", NodesToTake.Select(n => n.NodeIndex));
+			return $"Route from {NodeStart.NodeIndex} to {NodeEnd.NodeIndex}|Reached? {DestinationReached} | steps {steps} ({RouteLength}) ";
+		}
 	}
 }
