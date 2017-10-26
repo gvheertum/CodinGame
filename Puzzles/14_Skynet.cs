@@ -25,11 +25,8 @@ namespace Puzzles.Skynet
 			new SkynetPlayer(new CodingGameProxyEngine()).Run();
 		}
 
-		public class Node
+		public class SkyNetNode : Shared.Node<SkyNetNode>
 		{
-			public int NodeIndex { get; set; }
-			public List<Node> LinkedNodes { get; set; } = new List<Node>();
-			public List<int> LinkedNodesIndex { get; set; } = new List<int>();
 			public bool IsExitNode { get; set; }
 		}
 
@@ -69,22 +66,22 @@ namespace Puzzles.Skynet
 			}
 		}
 
-		private IEnumerable<Node> CreateNodes(int nodeCount)
+		private IEnumerable<SkyNetNode> CreateNodes(int nodeCount)
 		{
 			for(int i = 0; i < nodeCount; i++)
 			{ 
-				yield return new Node() { NodeIndex = i };
+				yield return new SkyNetNode() { NodeIndex = i };
 			}
 		}
 
-		private Dictionary<int, Node> CreateNodeDictionary(List<Node> nodes)
+		private Dictionary<int, SkyNetNode> CreateNodeDictionary(List<SkyNetNode> nodes)
 		{
-			Dictionary<int, Node> dict = new Dictionary<int, Node>();
+			Dictionary<int, SkyNetNode> dict = new Dictionary<int, SkyNetNode>();
 			nodes.ForEach(n => dict.Add(n.NodeIndex, n));
 			return dict;
 		}
 
-		private void LinkNodes(Dictionary<int, Node> nodes, int nrOfLinks)
+		private void LinkNodes(Dictionary<int, SkyNetNode> nodes, int nrOfLinks)
 		{
 			for (int i = 0; i < nrOfLinks; i++)
 			{
@@ -103,7 +100,12 @@ namespace Puzzles.Skynet
 			}
 		}
 
-		private void FlagExitNodes(Dictionary<int, Node> nodes, int nrOfExitGates)
+		private void CalculateRoutesBetweenPoint(SkyNetNode from, SkyNetNode to, int maxSteps)
+		{
+
+		}
+
+		private void FlagExitNodes(Dictionary<int, SkyNetNode> nodes, int nrOfExitGates)
 		{
 			for (int i = 0; i < nrOfExitGates; i++)
 			{
