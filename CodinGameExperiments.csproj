@@ -58,5 +58,8 @@
     <Content Include="Shared\NodeRoute.cs" />
     <Content Include="Shared\RouteCalculator.cs" />
     <Content Include="ProgramRunners\RouteTestRunner.cs" />
+    <Content Include="Puzzles\15_WarCards" />
+    <Content Include="Puzzles\15_WarCards.cs" />
+    <Content Include="ProgramRunners\PuzzleTestRunners\WarCards.cs" />
   </ItemGroup>
 </Project>
