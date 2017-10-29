@@ -61,9 +61,9 @@ namespace Puzzles.Warcards
 		}
 
 		
-		public WarResult RunWar(PlayBoard playBoard)
+		public WarGameEndResult RunWar(PlayBoard playBoard)
 		{
-			var warRes = new WarResult() { NrOfRounds = 0 };
+			var warRes = new WarGameEndResult() { NrOfRounds = 0 };
 			while(true)
 			{
 				Log(playBoard.EchoCards());
@@ -75,26 +75,30 @@ namespace Puzzles.Warcards
 				//Play another round
 				warRes.NrOfRounds++;
 
-				var warCheck = PlayCausesWar(playBoard);
-				if(warCheck == null) { throw new Exception("One of the players ran out, this is not possible"); }
+				var warCheck = SingleCardWar(playBoard);
+				if(warCheck == null) { throw new Exception("One of the players ran out, this is not valid at this location"); }
 				if(!warCheck.CausesWar) 
 				{ 
-					Log("No war"); 
-					RedistCardsIfNotWar(playBoard, warCheck);
+					Log("No war, returning cards"); 
+					playBoard.PlayerWin(warCheck.WinningPlayer.Value);
 					continue; 
 				}
-				Log("This is war!");
-				PlayWar(playBoard, warCheck);
-			}
+				else
+				{
+					Log("This is war!");			
+					MultiCardWar(playBoard);
 
+				}
+			}
+			Log($"War is over: {warRes}");
 			return warRes;
 		}
 
 		
-		protected WarCheck PlayCausesWar(PlayBoard playBoard)
+		protected WarCheck SingleCardWar(PlayBoard playBoard)
 		{
-			var c1 = DeQueueCard(playBoard.CardsPlayer1);
-			var c2 = DeQueueCard(playBoard.CardsPlayer2);
+			var c1 = playBoard.PopCardPlayer1();
+			var c2 = playBoard.PopCardPlayer2();
 			
 			Log($"Playing->  p1: {c1} p2: {c2}");
 			if(c1 == null || c2 == null) { return null; }
@@ -102,38 +106,38 @@ namespace Puzzles.Warcards
 			{
 				P1Card = c1,
 				P2Card = c2,
-				CausesWar = c1.Strength == c2.Strength
+				CausesWar = c1.Strength == c2.Strength,
+				WinningPlayer = GetWinningPlayer(c1,c2)
 			};
 		}
 
-		private void RedistCardsIfNotWar(PlayBoard playBoard, WarCheck warCheck)
+		//Based on 2 cards get the winning player. Null if equal
+		private int? GetWinningPlayer(Card p1Card, Card p2Card)
 		{
-			if(CardPower.IndexOf(warCheck.P1Card.Strength) > CardPower.IndexOf(warCheck.P2Card.Strength))
-			{
-				playBoard.CardsPlayer1.Add(warCheck.P1Card);
-				playBoard.CardsPlayer1.Add(warCheck.P2Card);
-			}
-			else
-			{
-				playBoard.CardsPlayer2.Add(warCheck.P2Card);
-				playBoard.CardsPlayer2.Add(warCheck.P1Card);
-			}
+			var idxC1 = CardPower.IndexOf(p1Card.Strength);
+			var idxC2 = CardPower.IndexOf(p2Card.Strength);
+			if(idxC1 > idxC2) { return 1; }
+			if(idxC2 > idxC1) { return 2; }
+			return null;
 		}
 
-		protected void PlayWar(PlayBoard playBoard, WarCheck warCheck)
+		private const int _warCardCount = 3;
+		//War executed on equal cards, will lay off 3 cards and check the fourth
+		protected WarOutcome MultiCardWar(PlayBoard playBoard)
 		{
-			return;
+			var outcome = new WarOutcome();
+			//Pop the amount of cards
+			for(int i = 0; i < _warCardCount; i++)
+			{
+				if(playBoard.PopCardPlayer1() == null) { outcome.WinningPlayer = 2; outcome.ExitBecauseOutOfCards = true; return outcome; }
+				if(playBoard.PopCardPlayer2()==null) { outcome.WinningPlayer = 1; outcome.ExitBecauseOutOfCards = true; return outcome; }
+			}
+			//Try getting a normal run
+			var singleRes = SingleCardWar(playBoard);
+			if(singleRes.WinningPlayer == null) { Log("War resulted in more war!"); return MultiCardWar(playBoard); }
+			outcome.WinningPlayer = singleRes.WinningPlayer.Value;
+			return outcome;
 		}
-
-
-		//Helper to dequeue the card from the beginning of the queue and return it
-		private Card DeQueueCard(List<Card> cards)
-		{
-			if(!cards.Any()) { return null; }
-			var card = cards.First();
-			cards.RemoveAt(0);
-			return card;
-		} 
 	}
 
 
@@ -144,7 +148,53 @@ namespace Puzzles.Warcards
 	public class PlayBoard
 	{
 		public List<Card> CardsPlayer1 { get;set; } = new List<Card>();
+		public List<Card> CardsPlayedPlayer1 {get;set;} = new List<Card>();
 		public List<Card> CardsPlayer2 { get;set; } = new List<Card>();
+		public List<Card> CardsPlayedPlayer2 {get;set;} = new List<Card>();
+
+		public Card PopCardPlayer1() 
+		{
+			if(!CardsPlayer1.Any()) { return null; }
+
+			var card = CardsPlayer1.First();
+			CardsPlayer1.RemoveAt(0);
+			CardsPlayedPlayer1.Add(card);
+			return card;
+		}
+
+		public Card PopCardPlayer2() 
+		{
+			if(!CardsPlayer2.Any()) { return null; }
+
+			var card = CardsPlayer2.First();
+			CardsPlayer2.RemoveAt(0);
+			CardsPlayedPlayer2.Add(card);
+			return card;
+		}
+		
+		public void PlayerWin(int playerID)
+		{
+			if(playerID == 1) { Player1Win(); }
+			else if (playerID == 2) { Player2Win(); }
+			else { throw new Exception($"PlayerID {playerID} invalid"); }
+		}
+
+		public void Player1Win()
+		{
+			CardsPlayer1.AddRange(CardsPlayedPlayer1);
+			CardsPlayer1.AddRange(CardsPlayedPlayer2);
+
+			CardsPlayedPlayer1.Clear();
+			CardsPlayedPlayer2.Clear();
+		}
+
+		public void Player2Win()
+		{
+			CardsPlayer2.AddRange(CardsPlayedPlayer2);
+			CardsPlayer2.AddRange(CardsPlayedPlayer1);
+			CardsPlayedPlayer1.Clear();
+			CardsPlayedPlayer2.Clear();
+		}
 		public string EchoCards() 
 		{
 			StringBuilder sb = new StringBuilder();
@@ -178,9 +228,14 @@ namespace Puzzles.Warcards
 		public Card P1Card {get;set;}
 		public Card P2Card {get;set;}
 		public bool CausesWar {get;set;}
+		public int? WinningPlayer {get;set;}
 	}
-	
-	public class WarResult
+	public class WarOutcome
+	{
+		public int? WinningPlayer {get;set;}
+		public bool ExitBecauseOutOfCards {get;set;}
+	}
+	public class WarGameEndResult
 	{
 		public int? WinningPlayer {get;set;}
 		public int? NrOfRounds {get;set;}

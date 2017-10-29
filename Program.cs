@@ -26,6 +26,14 @@ namespace CodinGameExperiments
         static void Main(string[] args)
         {
 			Console.WriteLine("Puzzle solution");
+			if(!args.Any()) 
+			{
+				LogOptions();
+				Console.WriteLine("Select option:");
+				var res = Console.ReadLine();
+				args = new string[] { res };
+			}
+
 			var action = GetRunAction(args.FirstOrDefault());
 			if(action != null) 
 			{
@@ -34,7 +42,11 @@ namespace CodinGameExperiments
 				return;
 			}
 			
-			System.Console.WriteLine("No command provided, use one of the following:");
+			LogOptions();
+        }
+
+		private static void LogOptions()
+		{
 			GetActions().ToList().ForEach(a => 
 			{
 				System.Console.WriteLine($"{a.Name}\t\t{a.Description}");
@@ -43,7 +55,7 @@ namespace CodinGameExperiments
 			System.Console.WriteLine($"PuzzlePath \t\t {PuzzlePath}");
 			System.Console.WriteLine($"SharedPath\t\t {SharedPath}");
 			System.Console.WriteLine($"MergePath\t\t {MergePath}");
-        }
+		}
 
 		private static RunAction GetRunAction(string action)
 		{

@@ -61,5 +61,6 @@
     <Content Include="Puzzles\15_WarCards" />
     <Content Include="Puzzles\15_WarCards.cs" />
     <Content Include="ProgramRunners\PuzzleTestRunners\WarCards.cs" />
+    <Content Include=".vscode\launch.json" />
   </ItemGroup>
 </Project>

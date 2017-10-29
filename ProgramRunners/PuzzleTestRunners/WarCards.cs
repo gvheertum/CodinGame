@@ -44,7 +44,7 @@ namespace ProgramRunners.PuzzleTestRunners
 		{
 			return new PuzzleTestCase()
 			{
-				CaseName = "Example test case",
+				CaseName = "Battle test case",
 				Input = new List<string>()
 				{
 					"5",
