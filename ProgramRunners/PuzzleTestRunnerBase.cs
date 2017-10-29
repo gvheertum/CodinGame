@@ -30,5 +30,10 @@ namespace ProgramRunners
 		{
 			System.Console.WriteLine(msg);
 		}
+
+		protected List<string> FromChunk(string chunck)
+		{
+			return chunck.Replace("\t","").Split(new [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.Trim()).ToList();
+		}
 	}
 }
