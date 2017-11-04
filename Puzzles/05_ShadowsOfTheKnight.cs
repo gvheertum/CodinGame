@@ -54,9 +54,11 @@ namespace Puzzles.ShadowsOfTheKnight
 				string bombDir = ReadLine(); // the direction of the bombs from batman's current location (U, UR, R, DR, D, DL, L or UL)
 				Log($"Bomb is in {bombDir} direction of us");
 				
-				var jumpPos = jumps.Count() < 2 //If there are not 2 items in the list we can do an bound jump 
-					? GetInitialMaxBound(batmanPos, flatMinPos, flatMaxPos, bombDir) 
-					: DetermineJumpPositionBySplitting(jumps, bombDir);
+				//On the first jump we set the outerbound of our set so we can middle it correctly
+				if(jumps.Count() < 2) {	jumps.Insert(0, GetInitialMaxBound(batmanPos, flatMinPos, flatMaxPos, bombDir)); }
+
+				//Determine where to jump to
+				var jumpPos = DetermineJumpPositionBySplitting(jumps, bombDir);
 				
 				PerformJump(jumpPos);
 				nrOfTurns--;
@@ -100,12 +102,12 @@ namespace Puzzles.ShadowsOfTheKnight
 			var yJumpPrev = Math.Max(prev.Y, curr.Y) - Math.Min(prev.Y, curr.Y);
 			Log($"Previous jump distance -> x:{xJumpPrev} y:{yJumpPrev}");
 
-			int middledXJump = xJumpPrev / 2;//(int)Math.Ceiling(xJumpPrev / 2.0m);
-			int middledYJump = yJumpPrev / 2;//(int)Math.Ceiling(yJumpPrev / 2.0m);
+			int middledXJump = (int)Math.Ceiling(xJumpPrev / 2.0);//(int)Math.Ceiling(xJumpPrev / 2.0m);
+			int middledYJump = (int)Math.Ceiling(yJumpPrev / 2.0);//(int)Math.Ceiling(yJumpPrev / 2.0m);
 			Log($"Midpoint of jump distance -> x:{middledXJump} y:{middledYJump}");
 
-			if(middledXJump == 0 && (BombIsLeft(direction) || BombIsRight(direction))) { Log("X jump was calculated to 0, forced to 1"); middledXJump = 1; }
-			if(middledYJump == 0 && (BombIsUp(direction) || BombIsDown(direction))) { Log("Y jump was calculated to 0, forced to 1"); middledYJump = 1; }
+			if(middledXJump == 0 && (BombIsLeft(direction) || BombIsRight(direction))) { Log("X jump was calculated to 0, forced to 2"); middledXJump = 1; }
+			if(middledYJump == 0 && (BombIsUp(direction) || BombIsDown(direction))) { Log("Y jump was calculated to 0, forced to 2"); middledYJump = 1; }
 
 			var newPos = curr.GetCopy(); //Start with curr as aiming point
 			if(BombIsLeft(direction)) { newPos.X = newPos.X - middledXJump; }
