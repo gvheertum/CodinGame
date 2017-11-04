@@ -11,6 +11,7 @@ using Shared;
  * the standard input according to the problem statement.
  **/
  //https://www.codingame.com/ide/puzzle/don't-panic-episode-1
+ //https://www.codingame.com/training/hard/don't-panic-episode-2
 
 namespace Puzzles.DontPanic
 {
@@ -67,14 +68,15 @@ namespace Puzzles.DontPanic
 				Log($"Leading clone: {clonePos}");
 			
 				var action = GetAction(clonePos, exitPos, elevators);
-				WriteLine($"{action}".ToUpperInvariant()); // action: WAIT or BLOCK
+				WriteLine($"{action}".ToUpperInvariant()); // action: WAIT or BLOCK or ELEVATOR
 			}
 		}
 
 		public enum CloneAction 
 		{
 			Wait,
-			Block
+			Block,
+			Elevator
 		}
 
 		private CloneAction GetAction(ClonePos clonePos, ElementPos exit, List<ElementPos> elevators) 
@@ -85,7 +87,14 @@ namespace Puzzles.DontPanic
 			Log($"Drone is on exit floor: {cloneOnExitFloor}");
 
 			var elementToNavTo = cloneOnExitFloor ? exit : elevators.FirstOrDefault(e => e.Floor == clonePos.Floor);
-			if(elementToNavTo == null) {throw new Exception("Looking for elevator since we are on a different floor, but none found"); }
+			if(elementToNavTo == null) 
+			{
+				Log("We want to move to an elevator on floor {}, but none is found, creating an elevator here!");
+				var newEl = new ElementPos() { Floor = clonePos.Floor, XPos = clonePos.XPos, ElementType = "Own Elevator" };
+				elevators.Add(newEl);
+				return CloneAction.Elevator;
+			}
+
 			Log($"Moving drone to {elementToNavTo}");
 
 			var expectedDirection = DetermineExpectedDirection(clonePos, elementToNavTo);
