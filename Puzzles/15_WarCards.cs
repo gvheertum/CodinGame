@@ -86,8 +86,19 @@ namespace Puzzles.Warcards
 				else
 				{
 					Log("This is war!");			
-					MultiCardWar(playBoard);
-
+					//warRes.NrOfRounds++; //War means extra turn!
+					var multiWar = MultiCardWar(playBoard);
+					if(!multiWar.ExitBecauseOutOfCards)
+					{
+						Log($"Player {multiWar.WinningPlayer.Value} won the multicard war");
+						playBoard.PlayerWin(multiWar.WinningPlayer.Value);
+					}
+					else
+					{
+						Log("Multicard exited because user ran out of cards! -> PAT");
+						warRes.WinningPlayer = null;
+						break;
+					}
 				}
 			}
 			Log($"War is over: {warRes}");
@@ -130,7 +141,7 @@ namespace Puzzles.Warcards
 			for(int i = 0; i < _warCardCount; i++)
 			{
 				if(playBoard.PopCardPlayer1() == null) { outcome.WinningPlayer = 2; outcome.ExitBecauseOutOfCards = true; return outcome; }
-				if(playBoard.PopCardPlayer2()==null) { outcome.WinningPlayer = 1; outcome.ExitBecauseOutOfCards = true; return outcome; }
+				if(playBoard.PopCardPlayer2() == null) { outcome.WinningPlayer = 1; outcome.ExitBecauseOutOfCards = true; return outcome; }
 			}
 			//Try getting a normal run
 			var singleRes = SingleCardWar(playBoard);
@@ -190,8 +201,9 @@ namespace Puzzles.Warcards
 
 		public void Player2Win()
 		{
-			CardsPlayer2.AddRange(CardsPlayedPlayer2);
 			CardsPlayer2.AddRange(CardsPlayedPlayer1);
+			CardsPlayer2.AddRange(CardsPlayedPlayer2); //Silly stuff, always add cards of P1 first
+
 			CardsPlayedPlayer1.Clear();
 			CardsPlayedPlayer2.Clear();
 		}
