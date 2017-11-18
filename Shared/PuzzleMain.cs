@@ -13,7 +13,13 @@ namespace Shared
 	// Logging: Console.Error.Log -> Log
 	public abstract class PuzzleMain
 	{
+		//Suppress all console output (usefull for performance gain in large games)
+		//This will also suppress IO logic since the whole logging is disabled
 		protected bool _runSilent = false;
+		
+		//Option to supress the output of default IO (use this when a lot of IO is happening or when a echoing differently)
+		//The default Log will still work in this case
+		protected bool _supressDefaultIO = false;
 		private IGameEngine _gameEngine;
 		protected PuzzleMain(IGameEngine gameEngine)
 		{
@@ -32,7 +38,7 @@ namespace Shared
 		{
 			var line = _gameEngine.ReadLine();
 			_inputtedData.Add(line);
-			Log($"ReadLine: {line}");
+			if(!_supressDefaultIO) { Log($"ReadLine: {line}"); }
 			return line;
 		}
 
@@ -47,7 +53,7 @@ namespace Shared
 		private List<string> _responseData = new List<string>();
 		protected void WriteLine(string line)
 		{
-			Log($"WriteLine: {line}");
+			if(!_supressDefaultIO) { Log($"WriteLine: {line}"); }
 			_responseData.Add(line);
 			_gameEngine.WriteLine(line);
 		}
@@ -62,7 +68,7 @@ namespace Shared
 
 		protected void Log(object obj)
 		{
-			if(!_runSilent) 
+			if(!_runSilent) //If silent, no logging is performed
 			{
 				Console.Error.WriteLine(obj);
 			}
