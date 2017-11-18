@@ -34,6 +34,8 @@ namespace Puzzles.Challenge_CrazyMax
 	public enum UnitType
 	{
 		Reaper = 0,
+		Destroyer = 1,
+		WaterTank = 3,
 		Water = 4
 	}
 
@@ -79,6 +81,8 @@ namespace Puzzles.Challenge_CrazyMax
 		{
 			new CrazyMaxPlayer(new CodingGameProxyEngine()).Run();
 		}
+
+		private const int MyPlayerID = 0;
 		public override void Run()
 		{
 			_supressDefaultIO = true; //Do not output our IO to the log
@@ -86,7 +90,6 @@ namespace Puzzles.Challenge_CrazyMax
 			while (IsRunning())
 			{ 
 				var gameState = ReadGameState();
-				Log(gameState);
 
 				List<Unit> units = new List<Unit>();
 				for (int i = 0; i < gameState.UnitCount; i++)
@@ -96,40 +99,57 @@ namespace Puzzles.Challenge_CrazyMax
 				}
 		
 				var reapers = units.Where(u => u.UnitType == UnitType.Reaper).ToList();
+				var destroyers = units.Where(u => u.UnitType == UnitType.Destroyer).ToList();
 				var water = units.Where(u => u.UnitType == UnitType.Water).ToList();
-				var myUnits = reapers.Where(u => u.Player == 0).ToList();
+				var tanks = units.Where(u => u.UnitType == UnitType.WaterTank).ToList();
+				var myReapers = reapers.Where(u => u.Player == MyPlayerID).ToList();
+				var myDestroyers = destroyers.Where(u => u.Player == MyPlayerID).ToList();
 
-				Log($"Found {myUnits.Count} units for me (total of {units.Count})");
+				Log($"Found {myReapers.Count} reapers and {myDestroyers} destroyers for me (total of {units.Count})");
 				Log($"Found {water.Count} water units");
+				Log($"Found {tanks.Count} water tanks");
 
 
 				//Move my units
-				myUnits.ForEach(u => 
+				myReapers.ForEach(u => 
 				{
-					WriteUnitMove(GetUnitMove(myUnits.First(), water));
+					Log($"Plotting move for unit {u.UnitId} (t: {u.UnitType})");
+					//Move our reaper to the water sources, if no water present follow our destroyers to allow us to be at the water asap
+					WriteUnitMove(GetUnitMove(u, water, myDestroyers));
 				});
 
-				//For phase 1 -> 2x wait
-				//Flush the rest of the expected moves (we are expected to do 3) as wait
+				myDestroyers.ForEach(d => 
+				{
+					Log($"Plotting move for unit {d.UnitId} (t: {d.UnitType})");
+					WriteUnitMove(GetUnitMove(d, tanks, null));
+				});
+
 				int expectedMoves = 3;
-				for(int i = myUnits.Count; i < expectedMoves; i++)
+				for(int i = myDestroyers.Count + myReapers.Count; i < expectedMoves; i++)
 				{
 					WriteUnitMove(null);
 				}
 			}
 		}
 
-		private UnitMove GetUnitMove(Unit unit, IEnumerable<Unit> water)
+		private UnitMove GetUnitMove(Unit unit, IEnumerable<Unit> targetDestinations, IEnumerable<Unit> alternateDestinations)
 		{
 			if(unit == null) { return null; }
-			var moveTo = GetClosestPuddle(unit, water);
-			Log($"Moving our reaper to: {moveTo}");
+
+			Log($"Plotting move for {unit.UnitId} (t: {unit.UnitType})");
+			if(!targetDestinations.Any()) { Log("There are no primary targets to navigate to, falling back"); }
+			var targetsToUse = targetDestinations?.Any() == true ? targetDestinations : alternateDestinations;
+			
+			var moveTo = GetClosestTarget(unit, targetsToUse);
+			if(moveTo == null) { Log("No element to navigate to on the map, ignoring turn"); return null; }
+			Log($"Moving our unit to: {moveTo}");
 			return new UnitMove() { X = moveTo.X, Y = moveTo.Y, V = 300 };
 		}
 
-		private Unit GetClosestPuddle(Unit unit, IEnumerable<Unit> water)
+		private Unit GetClosestTarget(Unit unit, IEnumerable<Unit> targets)
 		{
-			return water.OrderBy(w => w.DistanceTo(unit)).First();
+			if(!targets?.Any() == true) { return null; }
+			return targets.OrderBy(w => w.DistanceTo(unit)).First();
 		}
 
 
