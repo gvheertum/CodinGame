@@ -9,10 +9,10 @@ namespace Shared
 		public int Y {get;set;}
 		public int PositionIndex { get; set; }
 	
-		public double DistanceTo(Position p)
+		public double DistanceTo(Position p, int correction = 0) //Correction can be used to offset negative values (when working on circles or non 0,0 grids)
 		{
-			var xDiff = System.Math.Abs(p.X - X);
-			var yDiff = System.Math.Abs(p.Y - Y);
+			var xDiff = System.Math.Abs((p.X + correction) - (X + correction));
+			var yDiff = System.Math.Abs((p.Y + correction) - (Y + correction));
 			return System.Math.Sqrt((xDiff*xDiff) + (yDiff - yDiff));
 		}
 

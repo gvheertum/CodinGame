@@ -35,6 +35,7 @@ namespace Puzzles.Challenge_CrazyMax
 	{
 		Reaper = 0,
 		Destroyer = 1,
+		Doof = 2,
 		WaterTank = 3,
 		Water = 4
 	}
@@ -65,9 +66,10 @@ namespace Puzzles.Challenge_CrazyMax
 		public int X { get; set; }
 		public int Y { get; set; }
 		public int V { get; set; }
+		public bool IsSkill { get; set; }
 		public override string ToString() 
 		{
-			return $"{X} {Y} {V}";
+			return IsSkill ? $"SKILL {X} {Y}" : $"{X} {Y} {V}";
 		}
 	}
 
@@ -100,12 +102,14 @@ namespace Puzzles.Challenge_CrazyMax
 		
 				var reapers = units.Where(u => u.UnitType == UnitType.Reaper).ToList();
 				var destroyers = units.Where(u => u.UnitType == UnitType.Destroyer).ToList();
+				var doofs = units.Where(u => u.UnitType == UnitType.Doof).ToList();
 				var water = units.Where(u => u.UnitType == UnitType.Water).ToList();
 				var tanks = units.Where(u => u.UnitType == UnitType.WaterTank).ToList();
 				var myReapers = reapers.Where(u => u.Player == MyPlayerID).ToList();
 				var myDestroyers = destroyers.Where(u => u.Player == MyPlayerID).ToList();
+				var myDoofs = doofs.Where(u => u.Player == MyPlayerID).ToList();
 
-				Log($"Found {myReapers.Count} reapers and {myDestroyers} destroyers for me (total of {units.Count})");
+				Log($"Found {myReapers.Count} reapers, {myDestroyers.Count} destroyers and {myDoofs.Count} doofs for me (total of {units.Count})");
 				Log($"Found {water.Count} water units");
 				Log($"Found {tanks.Count} water tanks");
 
@@ -121,18 +125,33 @@ namespace Puzzles.Challenge_CrazyMax
 				myDestroyers.ForEach(d => 
 				{
 					Log($"Plotting move for unit {d.UnitId} (t: {d.UnitType})");
-					WriteUnitMove(GetUnitMove(d, tanks, null));
+					var suggestedMove = GetUnitMove(d, tanks, null);
+
+					if(gameState.MyRage > 100) 
+					{
+						Log("Time for a grenade!"); 
+						suggestedMove.IsSkill = true; 
+					}
+					WriteUnitMove(suggestedMove);
 				});
 
-				int expectedMoves = 3;
-				for(int i = myDestroyers.Count + myReapers.Count; i < expectedMoves; i++)
+				myDoofs.ForEach(d => 
 				{
-					WriteUnitMove(null);
-				}
+					Log($"Plotting move for unit {d.UnitId} (t: {d.UnitType})");
+					var doofMove = GetUnitMove(d, tanks);
+					WriteUnitMove(doofMove);
+				});
+
+				//This is no longer relevant since we now make 3 moves
+				// int expectedMoves = 3;
+				// for(int i = myDestroyers.Count + myReapers.Count; i < expectedMoves; i++)
+				// {
+				// 	WriteUnitMove(null);
+				// }
 			}
 		}
 
-		private UnitMove GetUnitMove(Unit unit, IEnumerable<Unit> targetDestinations, IEnumerable<Unit> alternateDestinations)
+		private UnitMove GetUnitMove(Unit unit, IEnumerable<Unit> targetDestinations, IEnumerable<Unit> alternateDestinations = null)
 		{
 			if(unit == null) { return null; }
 
@@ -146,10 +165,12 @@ namespace Puzzles.Challenge_CrazyMax
 			return new UnitMove() { X = moveTo.X, Y = moveTo.Y, V = 300 };
 		}
 
+		private const int Radius = 6000; //Due to radius the distance can be negative, use the radius to offset values to pos values
 		private Unit GetClosestTarget(Unit unit, IEnumerable<Unit> targets)
 		{
 			if(!targets?.Any() == true) { return null; }
-			return targets.OrderBy(w => w.DistanceTo(unit)).First();
+			//TODO: our distance seems to be a bit strange, possibly due to the negative positions
+			return targets.OrderBy(w => w.DistanceTo(unit, Radius /2)).First();
 		}
 
 
