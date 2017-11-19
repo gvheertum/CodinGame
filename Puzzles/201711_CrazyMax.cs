@@ -87,7 +87,7 @@ namespace Puzzles.Challenge_CrazyMax
 		private const int MyPlayerID = 0;
 		public override void Run()
 		{
-			_supressDefaultIO = true; //Do not output our IO to the log
+			
 			// game loop
 			while (IsRunning())
 			{ 

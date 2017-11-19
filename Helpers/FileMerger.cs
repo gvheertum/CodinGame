@@ -8,6 +8,9 @@ using System.Threading;
 
 namespace Helpers
 {
+	//TODO: This could be made smarter to only include references really needed, this can be headers in the file indicating that we want to incude a certain base file
+	//TODO: Base files can include other required files
+	//TODO: Allow folders to exist per puzzle allowing us to merge certain puzzle specific files
 	public class FileMerger
 	{
 		public class ReadRes
@@ -62,13 +65,21 @@ namespace Helpers
 
 			StringBuilder resBuilder = new StringBuilder();
 			files.SelectMany(f => f.Usings).Distinct().ToList().ForEach(u => resBuilder.AppendLine(u));
-
+			int fileIdx = 0;
 			files.ForEach(f => 
 			{
-				resBuilder.AppendLine();
-				resBuilder.AppendLine();
-				resBuilder.AppendLine($"//File: {f.FileName}");
+				resBuilder.AppendLine($"//File {fileIdx.ToString().PadLeft(2,'0')}: {f.FileName}");
 				resBuilder.AppendJoin(Environment.NewLine, f.Lines);
+			
+				//For the first file flush additional empty lines to flag starting of shared files logic
+				for(int i = 0; fileIdx == 0 && i < 20; i++) 
+				{
+					resBuilder.AppendLine();
+				}
+
+				resBuilder.AppendLine();
+				resBuilder.AppendLine();
+				fileIdx++;
 			});
 			System.IO.File.WriteAllText(outputFile, resBuilder.ToString());
 			Console.WriteLine($"Merged file written to {outputFile}");

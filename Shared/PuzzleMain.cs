@@ -19,7 +19,7 @@ namespace Shared
 		
 		//Option to supress the output of default IO (use this when a lot of IO is happening or when a echoing differently)
 		//The default Log will still work in this case
-		protected bool _supressDefaultIO = false;
+		protected bool _echoDefaultSystemIO = false;
 		private IGameEngine _gameEngine;
 		protected PuzzleMain(IGameEngine gameEngine)
 		{
@@ -38,7 +38,7 @@ namespace Shared
 		{
 			var line = _gameEngine.ReadLine();
 			_inputtedData.Add(line);
-			if(!_supressDefaultIO) { Log($"ReadLine: {line}"); }
+			if(!_echoDefaultSystemIO) { Log($"ReadLine: {line}"); }
 			return line;
 		}
 
@@ -53,7 +53,7 @@ namespace Shared
 		private List<string> _responseData = new List<string>();
 		protected void WriteLine(string line)
 		{
-			if(!_supressDefaultIO) { Log($"WriteLine: {line}"); }
+			if(_echoDefaultSystemIO) { Log($"WriteLine: {line}"); }
 			_responseData.Add(line);
 			_gameEngine.WriteLine(line);
 		}
