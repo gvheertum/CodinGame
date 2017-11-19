@@ -31,6 +31,8 @@ namespace Shared
 		//Initializer for sub elements working on the puzzle root
 		protected PuzzleMain(PuzzleMain puzzleMain) : this(puzzleMain._gameEngine)
 		{
+			this._runSilent = puzzleMain._runSilent;
+			this._echoDefaultSystemIO = puzzleMain._echoDefaultSystemIO;
 		}
 
 		public virtual void Run() { Log("No run defined, this should not happen"); }
@@ -43,7 +45,7 @@ namespace Shared
 		{
 			var line = _gameEngine.ReadLine();
 			_inputtedData.Add(line);
-			if(!_echoDefaultSystemIO) { Log($"ReadLine: {line}"); }
+			if(_echoDefaultSystemIO) { Log($"ReadLine: {line}"); }
 			return line;
 		}
 
