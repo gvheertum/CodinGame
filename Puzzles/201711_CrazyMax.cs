@@ -12,7 +12,7 @@ using Shared;
  **/
 namespace Puzzles.Challenge_CrazyMax
 {
-	public class GameSate
+	public class GameState
 	{
 		public int MyScore { get; set; }
 		public int EnemyScore1 { get; set; }
@@ -21,6 +21,16 @@ namespace Puzzles.Challenge_CrazyMax
 		public int EnemyRage1 { get; set; }
 		public int EnemyRage2 { get; set; }
 		public int UnitCount { get; set; }
+
+		public List<Entity> AllEntities { get; set; } = new List<Entity>();
+		public List<Entity> Reapers { get; set; } = new List<Entity>();
+		public List<Entity> Destroyers { get; set; } = new List<Entity>();
+		public List<Entity> Doofs { get; set; } = new List<Entity>();
+		public List<Entity> Water { get; set; } = new List<Entity>();
+		public List<Entity> Tanks { get; set; } = new List<Entity>();
+		public List<Entity> MyReapers { get; set; } = new List<Entity>();
+		public List<Entity> MyDestroyers { get; set; } = new List<Entity>();
+		public List<Entity> MyDoofs { get; set; } = new List<Entity>();
 
 		public override string ToString()
 		{
@@ -31,7 +41,7 @@ namespace Puzzles.Challenge_CrazyMax
 		}
 	}
 
-	public enum UnitType
+	public enum EntityType
 	{
 		Reaper = 0,
 		Destroyer = 1,
@@ -40,10 +50,10 @@ namespace Puzzles.Challenge_CrazyMax
 		Water = 4
 	}
 
-	public class Unit : Position
+	public class Entity : Position
 	{
 		public int UnitId { get; set; }
-		public UnitType UnitType { get; set; }
+		public EntityType UnitType { get; set; }
 		public int Player { get; set; }
 		public float Mass { get; set; }
 		public int Radius { get; set; }
@@ -84,95 +94,30 @@ namespace Puzzles.Challenge_CrazyMax
 			new CrazyMaxPlayer(new CodingGameProxyEngine()).Run();
 		}
 
-		private const int MyPlayerID = 0;
 		public override void Run()
 		{
 			
 			// game loop
 			while (IsRunning())
 			{ 
-				var gameState = ReadGameState();
+				var gameState = new MeanMaxBoardReader(this).ReadGameState();
 
-				List<Unit> units = new List<Unit>();
-				for (int i = 0; i < gameState.UnitCount; i++)
-				{
-					var unit = ReadUnitState();
-					units.Add(unit);
-				}
-		
-				var reapers = units.Where(u => u.UnitType == UnitType.Reaper).ToList();
-				var destroyers = units.Where(u => u.UnitType == UnitType.Destroyer).ToList();
-				var doofs = units.Where(u => u.UnitType == UnitType.Doof).ToList();
-				var water = units.Where(u => u.UnitType == UnitType.Water).ToList();
-				var tanks = units.Where(u => u.UnitType == UnitType.WaterTank).ToList();
-				var myReapers = reapers.Where(u => u.Player == MyPlayerID).ToList();
-				var myDestroyers = destroyers.Where(u => u.Player == MyPlayerID).ToList();
-				var myDoofs = doofs.Where(u => u.Player == MyPlayerID).ToList();
-
-				Log($"Found {myReapers.Count} reapers, {myDestroyers.Count} destroyers and {myDoofs.Count} doofs for me (total of {units.Count})");
-				Log($"Found {water.Count} water units");
-				Log($"Found {tanks.Count} water tanks");
+				Log($"Found {gameState.AllEntities.Count} entities on the board");
+				Log($"Found {gameState.Water.Count} water units");
+				Log($"Found {gameState.Tanks.Count} water tanks");
 
 
 				//Move my units
-				myReapers.ForEach(u => 
-				{
-					Log($"Plotting move for unit {u.UnitId} (t: {u.UnitType})");
-					//Move our reaper to the water sources, if no water present follow our destroyers to allow us to be at the water asap
-					WriteUnitMove(GetUnitMove(u, water, myDestroyers));
-				});
-
-				myDestroyers.ForEach(d => 
-				{
-					Log($"Plotting move for unit {d.UnitId} (t: {d.UnitType})");
-					var suggestedMove = GetUnitMove(d, tanks, null);
-
-					if(gameState.MyRage > 100) 
-					{
-						Log("Time for a grenade!"); 
-						suggestedMove.IsSkill = true; 
-					}
-					WriteUnitMove(suggestedMove);
-				});
-
-				myDoofs.ForEach(d => 
-				{
-					Log($"Plotting move for unit {d.UnitId} (t: {d.UnitType})");
-					var doofMove = GetUnitMove(d, tanks);
-					WriteUnitMove(doofMove);
-				});
-
-				//This is no longer relevant since we now make 3 moves
-				// int expectedMoves = 3;
-				// for(int i = myDestroyers.Count + myReapers.Count; i < expectedMoves; i++)
-				// {
-				// 	WriteUnitMove(null);
-				// }
+				var aiFactory = new AIFactory(this);
+				List<UnitMove> moves = new List<UnitMove>();
+				moves.AddRange(gameState.MyReapers.Select(u => aiFactory.GetAIForUnit(u).GetMove(gameState)));
+				moves.AddRange(gameState.MyDestroyers.Select(u => aiFactory.GetAIForUnit(u).GetMove(gameState)));
+				moves.AddRange(gameState.MyDoofs.Select(u => aiFactory.GetAIForUnit(u).GetMove(gameState)));
+				moves.ForEach(m => WriteUnitMove(m));
 			}
 		}
 
-		private UnitMove GetUnitMove(Unit unit, IEnumerable<Unit> targetDestinations, IEnumerable<Unit> alternateDestinations = null)
-		{
-			if(unit == null) { return null; }
-
-			Log($"Plotting move for {unit.UnitId} (t: {unit.UnitType})");
-			if(!targetDestinations.Any()) { Log("There are no primary targets to navigate to, falling back"); }
-			var targetsToUse = targetDestinations?.Any() == true ? targetDestinations : alternateDestinations;
-			
-			var moveTo = GetClosestTarget(unit, targetsToUse);
-			if(moveTo == null) { Log("No element to navigate to on the map, ignoring turn"); return null; }
-			Log($"Moving our unit to: {moveTo}");
-			return new UnitMove() { X = moveTo.X, Y = moveTo.Y, V = 300 };
-		}
-
-		private const int Radius = 6000; //Due to radius the distance can be negative, use the radius to offset values to pos values
-		private Unit GetClosestTarget(Unit unit, IEnumerable<Unit> targets)
-		{
-			if(!targets?.Any() == true) { return null; }
-			//TODO: our distance seems to be a bit strange, possibly due to the negative positions
-			return targets.OrderBy(w => w.DistanceTo(unit, Radius /2)).First();
-		}
-
+		
 
 		private void WriteUnitMove(UnitMove move)
 		{
@@ -183,9 +128,114 @@ namespace Puzzles.Challenge_CrazyMax
 			WriteLine(move?.ToString() ?? "WAIT"); //No move = wait
 		}
 
-		private GameSate ReadGameState()
+		
+	}
+
+	
+
+	public class UnitAIReaper : UnitAIBase
+	{
+		public UnitAIReaper(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
+
+		public override UnitMove GetMove(GameState fullState)
 		{
-			GameSate state = new GameSate();
+			//Move our reaper to the water sources, if no water present follow our destroyers to allow us to be at the water asap
+			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Water, fullState.MyDestroyers);
+		}
+	}
+
+	public class UnitAIDestroyer : UnitAIBase
+	{
+		public UnitAIDestroyer(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
+		public override UnitMove GetMove(GameState fullState)
+		{
+			var suggestedMove = GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Tanks, null);
+
+			if(fullState.MyRage > 60) 
+			{
+				//TODO: grenades should only be thrown when items are close
+				_puzzle.Log("Time for a grenade!"); 
+				suggestedMove.IsSkill = true; 
+			}
+			return suggestedMove;
+		}
+	}
+
+	public class UnitAIDoof : UnitAIBase
+	{
+		public UnitAIDoof(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
+		public override UnitMove GetMove(GameState fullState)
+		{
+			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Destroyers);
+		}
+	}
+
+	public class AIFactory 
+	{
+		private PuzzleMain _puzzle;
+		public AIFactory(PuzzleMain puzzle) 
+		{
+			_puzzle = puzzle;	
+		}
+
+		public UnitAIBase GetAIForUnit(Entity entity)
+		{
+			if(entity.UnitType == EntityType.Destroyer) { return new UnitAIDestroyer(_puzzle, entity); }
+			else if(entity.UnitType == EntityType.Doof) { return new UnitAIDoof(_puzzle, entity); }
+			else if(entity.UnitType == EntityType.Reaper) { return new UnitAIReaper(_puzzle, entity); }
+			else { throw new Exception($"Cannot create AI for {entity.UnitType}"); }
+		}
+	}
+
+
+	//Base entry for the Unit AI logic. Contains helper functions to determine AI behavior
+	public abstract class UnitAIBase
+	{
+		protected PuzzleMain _puzzle;
+		protected Entity Entity { get; set; }
+		protected UnitAIBase(PuzzleMain puzzle, Entity entity) 
+		{ 
+			_puzzle = puzzle; 
+			Entity = entity;
+		}
+
+		public abstract UnitMove GetMove(GameState fullState);
+		protected UnitMove GetMoveFromElementToTargetOrAlternateTarget(Entity unit, IEnumerable<Entity> targetDestinations, IEnumerable<Entity> alternateDestinations = null)
+		{
+			if(unit == null) { return null; }
+
+			_puzzle.Log($"Plotting move for {unit.UnitId} (t: {unit.UnitType})");
+			if(!targetDestinations.Any()) { _puzzle.Log("There are no primary targets to navigate to, falling back"); }
+			var targetsToUse = targetDestinations?.Any() == true ? targetDestinations : alternateDestinations;
+			
+			var moveTo = GetClosestTargetForElement(unit, targetsToUse);
+			if(moveTo == null) { _puzzle.Log("No element to navigate to on the map, ignoring turn"); return null; }
+			_puzzle.Log($"Moving our unit to: {moveTo}");
+			return new UnitMove() { X = moveTo.X, Y = moveTo.Y, V = 300 };
+		}
+
+		private const int Radius = 6000; //Due to radius the distance can be negative, use the radius to offset values to pos values
+		private Entity GetClosestTargetForElement(Entity unit, IEnumerable<Entity> targets)
+		{
+			if(!targets?.Any() == true) { return null; }
+			return targets.OrderBy(w => w.DistanceTo(unit, Radius /2)).First();
+		}
+
+	}
+
+
+
+	//Handling of the state of the board by reading the console, should not really take additional changes after the
+	//first installments
+	public class MeanMaxBoardReader : PuzzleMain
+	{
+		public MeanMaxBoardReader(PuzzleMain puzzleMain) : base(puzzleMain)
+		{
+		}
+
+		public GameState ReadGameState()
+		{
+			GameState state = new GameState();
 			state.MyScore = int.Parse(ReadLine());
 			state.EnemyScore1 = int.Parse(ReadLine());
 			state.EnemyScore2 = int.Parse(ReadLine());
@@ -193,16 +243,43 @@ namespace Puzzles.Challenge_CrazyMax
 			state.EnemyRage1 = int.Parse(ReadLine());
 			state.EnemyRage2 = int.Parse(ReadLine());
 			state.UnitCount = int.Parse(ReadLine());
+			
+			
+			state = ReadUnitsIntoGameState(state, state.UnitCount);
 			return state;
 		}
 
-		private Unit ReadUnitState()
+		private const int MyPlayerID = 0;
+
+		private GameState ReadUnitsIntoGameState(GameState state, int nrOfUnits)
+		{
+			List<Entity> units = new List<Entity>();
+			for (int i = 0; i < nrOfUnits; i++)
+			{
+				var unit = ReadUnitStateFromInput();
+				units.Add(unit);
+			}
+
+			state.AllEntities = units;
+			state.Reapers = units.Where(u => u.UnitType == EntityType.Reaper).ToList();
+			state.Destroyers = units.Where(u => u.UnitType == EntityType.Destroyer).ToList();
+			state.Doofs = units.Where(u => u.UnitType == EntityType.Doof).ToList();
+			state.Water = units.Where(u => u.UnitType == EntityType.Water).ToList();
+			state.Tanks = units.Where(u => u.UnitType == EntityType.WaterTank).ToList();
+			state.MyReapers = state.Reapers.Where(u => u.Player == MyPlayerID).ToList();
+			state.MyDestroyers = state.Destroyers.Where(u => u.Player == MyPlayerID).ToList();
+			state.MyDoofs = state.Doofs.Where(u => u.Player == MyPlayerID).ToList();
+
+			return state;
+		}
+
+		private Entity ReadUnitStateFromInput()
 		{
 			string[] inputs = ReadLine().Split(' ');
-			var unitState = new Unit();
+			var unitState = new Entity();
 
 			unitState.UnitId = int.Parse(inputs[0]);
-			unitState.UnitType = (UnitType)int.Parse(inputs[1]);
+			unitState.UnitType = (EntityType)int.Parse(inputs[1]);
 			unitState.Player = int.Parse(inputs[2]);
 			unitState.Mass = float.Parse(inputs[3]);
 			unitState.Radius = int.Parse(inputs[4]);

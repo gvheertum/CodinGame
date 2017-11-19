@@ -28,7 +28,12 @@ namespace Shared
 			Log($"Running with game engine: {_gameEngine}");
 		}
 
-		public abstract void Run();
+		//Initializer for sub elements working on the puzzle root
+		protected PuzzleMain(PuzzleMain puzzleMain) : this(puzzleMain._gameEngine)
+		{
+		}
+
+		public virtual void Run() { Log("No run defined, this should not happen"); }
 
 		//Exposes the running flag of the game engine
 		protected bool IsRunning() { return _gameEngine.IsRunning(); }
@@ -66,7 +71,7 @@ namespace Shared
 			Log("** [/Sent] **");
 		}
 
-		protected void Log(object obj)
+		public void Log(object obj)
 		{
 			if(!_runSilent) //If silent, no logging is performed
 			{
