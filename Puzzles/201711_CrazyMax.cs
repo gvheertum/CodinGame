@@ -13,6 +13,116 @@ using Shared;
 namespace Puzzles.Challenge_CrazyMax
 {
 	
+	// ******************	
+	//AI LOGIC
+	// ******************	
+
+	public class UnitAIReaper : UnitAIBase
+	{
+		public UnitAIReaper(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
+
+		
+		protected override UnitMove GetPositionForMove(GameState fullState)
+		{
+			//Move our reaper to the water sources, if no water present follow our destroyers to allow us to be at the water asap
+			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Water, fullState.Destroyers); //Move to any destroyer close, we want to have them precious waters
+		}
+	}
+
+	public class UnitAIDestroyer : UnitAIBase
+	{
+		public UnitAIDestroyer(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
+		protected override UnitMove GetPositionForMove(GameState fullState)
+		{
+			var grenadeFor = DoGrenade(fullState);
+			if(grenadeFor != null)
+			{
+				_puzzle.Log("Time for a grenade!"); 
+				_puzzle.Log(grenadeFor);
+				return new UnitMove() { X = grenadeFor.X - 10, Y = grenadeFor.Y - 10, IsSkill = true };
+			}
+			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Tanks, fullState.EnemyDestroyers);
+		}
+
+		private Entity DoGrenade(GameState fullState) 
+		{
+			if(fullState.MyRage < 80) { return null; }
+			//TODO: if we are too close we should pick another
+
+			//Just pick the most annoying enemy
+			var suggested = fullState.EnemyScore1 > fullState.EnemyScore2 
+				? fullState.Enemy1Reapers.First()
+				: fullState.Enemy2Reapers.First();
+			if(fullState.MyEntities.Any(r => r.DistanceTo(suggested, Offset) < 500))
+			{
+				_puzzle.Log("We are to close for the grenade, so skip it");
+				return null;
+			}
+			return suggested;
+		}
+	}
+
+	public class UnitAIDoof : UnitAIBase
+	{
+		public UnitAIDoof(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
+		protected override UnitMove GetPositionForMove(GameState fullState)
+		{
+			//Push this element to reapers all around to mess with them
+			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.EnemyReapers);
+		}
+	}
+
+	
+
+
+//Base entry for the Unit AI logic. Contains helper functions to determine AI behavior
+	public abstract class UnitAIBase
+	{
+		protected PuzzleMain _puzzle;
+		protected Entity Entity { get; set; }
+		protected UnitAIBase(PuzzleMain puzzle, Entity entity) 
+		{ 
+			_puzzle = puzzle; 
+			Entity = entity;
+		}
+
+		public UnitMove GetMove(GameState fullState)
+		{
+			//TODO: now the system will just push them move-to as action, but we could have more graceful moving logic ;)
+			return GetPositionForMove(fullState);
+		}
+
+		//Positions/action we would like to navigate to
+		protected abstract UnitMove GetPositionForMove(GameState fullState);
+		protected UnitMove GetMoveFromElementToTargetOrAlternateTarget(Entity unit, IEnumerable<Entity> targetDestinations, IEnumerable<Entity> alternateDestinations = null)
+		{
+			if(unit == null) { return null; }
+
+			_puzzle.Log($"Plotting move for {unit.UnitId} (t: {unit.UnitType})");
+			if(!targetDestinations.Any()) { _puzzle.Log("There are no primary targets to navigate to, falling back"); }
+			var targetsToUse = targetDestinations?.Any() == true ? targetDestinations : alternateDestinations;
+			
+			var moveTo = GetClosestTargetForElement(unit, targetsToUse);
+			if(moveTo == null) { _puzzle.Log("No element to navigate to on the map, ignoring turn"); return null; }
+			_puzzle.Log($"Moving our unit to: {moveTo}");
+			return new UnitMove() { X = moveTo.X, Y = moveTo.Y, V = 300 };
+		}
+
+		public const int Radius = 6000; //Due to radius the distance can be negative, use the radius to offset values to pos values
+		public const int Offset = Radius / 2;
+		protected Entity GetClosestTargetForElement(Entity unit, IEnumerable<Entity> targets)
+		{
+			if(!targets?.Any() == true) { return null; }
+			return targets.OrderBy(w => w.DistanceTo(unit, Offset)).First();
+		}
+
+	}
+
+
+
+
+	// ** GAME PLAY
+
 
 	public class CrazyMaxPlayer : Shared.PuzzleMain
 	{
@@ -63,104 +173,8 @@ namespace Puzzles.Challenge_CrazyMax
 		
 	}
 
-	// ******************	
-	//AI LOGIC
-	// ******************	
-
-	public class UnitAIReaper : UnitAIBase
-	{
-		public UnitAIReaper(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
-
-		
-		protected override UnitMove GetPositionForMove(GameState fullState)
-		{
-			//Move our reaper to the water sources, if no water present follow our destroyers to allow us to be at the water asap
-			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Water, fullState.Destroyers); //Move to any destroyer close, we want to have them precious waters
-		}
-	}
-
-	public class UnitAIDestroyer : UnitAIBase
-	{
-		public UnitAIDestroyer(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
-		protected override UnitMove GetPositionForMove(GameState fullState)
-		{
-			var grenadeFor = DoGrenade(fullState);
-			if(grenadeFor != null)
-			{
-				_puzzle.Log("Time for a grenade!"); 
-				_puzzle.Log(grenadeFor);
-				return new UnitMove() { X = grenadeFor.X, Y = grenadeFor.Y, IsSkill = true };
-			}
-			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Tanks, fullState.EnemyDestroyers);
-		}
-
-		private Entity DoGrenade(GameState fullState) 
-		{
-			if(fullState.MyRage < 100) { return null; }
-			//TODO: if we are too close we should pick another
-
-			//Just pick the most annoying enemy
-			return fullState.EnemyScore1 > fullState.EnemyScore2 
-				? fullState.Enemy1Reapers.First()
-				: fullState.Enemy2Reapers.First();
-		
-		}
-	}
-
-	public class UnitAIDoof : UnitAIBase
-	{
-		public UnitAIDoof(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
-		protected override UnitMove GetPositionForMove(GameState fullState)
-		{
-			//Push this element to reapers all around to mess with them
-			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.EnemyReapers);
-		}
-	}
 
 	
-
-	//Base entry for the Unit AI logic. Contains helper functions to determine AI behavior
-	public abstract class UnitAIBase
-	{
-		protected PuzzleMain _puzzle;
-		protected Entity Entity { get; set; }
-		protected UnitAIBase(PuzzleMain puzzle, Entity entity) 
-		{ 
-			_puzzle = puzzle; 
-			Entity = entity;
-		}
-
-		public UnitMove GetMove(GameState fullState)
-		{
-			//TODO: now the system will just push them move-to as action, but we could have more graceful moving logic ;)
-			return GetPositionForMove(fullState);
-		}
-
-		//Positions/action we would like to navigate to
-		protected abstract UnitMove GetPositionForMove(GameState fullState);
-		protected UnitMove GetMoveFromElementToTargetOrAlternateTarget(Entity unit, IEnumerable<Entity> targetDestinations, IEnumerable<Entity> alternateDestinations = null)
-		{
-			if(unit == null) { return null; }
-
-			_puzzle.Log($"Plotting move for {unit.UnitId} (t: {unit.UnitType})");
-			if(!targetDestinations.Any()) { _puzzle.Log("There are no primary targets to navigate to, falling back"); }
-			var targetsToUse = targetDestinations?.Any() == true ? targetDestinations : alternateDestinations;
-			
-			var moveTo = GetClosestTargetForElement(unit, targetsToUse);
-			if(moveTo == null) { _puzzle.Log("No element to navigate to on the map, ignoring turn"); return null; }
-			_puzzle.Log($"Moving our unit to: {moveTo}");
-			return new UnitMove() { X = moveTo.X, Y = moveTo.Y, V = 300 };
-		}
-
-		public const int Radius = 6000; //Due to radius the distance can be negative, use the radius to offset values to pos values
-		public const int Offset = Radius / 2;
-		protected Entity GetClosestTargetForElement(Entity unit, IEnumerable<Entity> targets)
-		{
-			if(!targets?.Any() == true) { return null; }
-			return targets.OrderBy(w => w.DistanceTo(unit, Offset)).First();
-		}
-
-	}
 
 
 
@@ -243,20 +257,24 @@ namespace Puzzles.Challenge_CrazyMax
 			state.MyReapers = state.Reapers.Where(u => u.Player == MyPlayerID).ToList();
 			state.MyDestroyers = state.Destroyers.Where(u => u.Player == MyPlayerID).ToList();
 			state.MyDoofs = state.Doofs.Where(u => u.Player == MyPlayerID).ToList();
+			state.MyEntities = state.AllEntities.Where(u => u.Player == MyPlayerID).ToList();
 
 			state.Enemy1Reapers = state.Reapers.Where(u => u.Player == Enemy1PlayerID).ToList();
 			state.Enemy1Destroyers = state.Destroyers.Where(u => u.Player == Enemy1PlayerID).ToList();
 			state.Enemy1Doofs = state.Doofs.Where(u => u.Player == Enemy1PlayerID).ToList();
+			state.Enemy1Entities = state.AllEntities.Where(u => u.Player == Enemy1PlayerID).ToList();
 
 			state.Enemy2Reapers = state.Reapers.Where(u => u.Player == Enemy2PlayerID).ToList();
 			state.Enemy2Destroyers = state.Destroyers.Where(u => u.Player == Enemy2PlayerID).ToList();
 			state.Enemy2Doofs = state.Doofs.Where(u => u.Player == Enemy2PlayerID).ToList();
+			state.Enemy2Entities = state.AllEntities.Where(u => u.Player == Enemy2PlayerID).ToList();
 
 			//TODO: List of ALL units, friendly and enemy?
 
 			state.EnemyReapers = state.Reapers.Except(state.MyReapers).ToList(); 
 			state.EnemyDestroyers = state.Destroyers.Except(state.MyDestroyers).ToList();
 			state.EnemyDoofs = state.Doofs.Except(state.MyDoofs).ToList();
+			state.EnemyEntities = state.AllEntities.Where(u => u.Player == Enemy2PlayerID || u.Player == Enemy1PlayerID).ToList();
 
 			return state;
 		}
@@ -306,18 +324,22 @@ namespace Puzzles.Challenge_CrazyMax
 		public List<Entity> MyReapers { get; set; } = new List<Entity>();
 		public List<Entity> MyDestroyers { get; set; } = new List<Entity>();
 		public List<Entity> MyDoofs { get; set; } = new List<Entity>();
+		public List<Entity> MyEntities { get; set; } = new List<Entity>();
 
 		public List<Entity> Enemy1Doofs { get; set; } = new List<Entity>();
 		public List<Entity> Enemy1Destroyers { get; set; } = new List<Entity>();
 		public List<Entity> Enemy1Reapers { get; set; } = new List<Entity>();
+		public List<Entity> Enemy1Entities { get; set; } = new List<Entity>();
 
 		public List<Entity> Enemy2Doofs { get; set; } = new List<Entity>();
 		public List<Entity> Enemy2Destroyers { get; set; } = new List<Entity>();
 		public List<Entity> Enemy2Reapers { get; set; } = new List<Entity>();
+		public List<Entity> Enemy2Entities { get; set; } = new List<Entity>();
 
 		public List<Entity> EnemyReapers { get; set; } = new List<Entity>();
 		public List<Entity> EnemyDestroyers { get; set; } = new List<Entity>();
 		public List<Entity> EnemyDoofs { get; set; } = new List<Entity>();
+		public List<Entity> EnemyEntities { get; set; } = new List<Entity>();
 
 
 		public override string ToString()
