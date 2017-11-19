@@ -84,22 +84,26 @@ namespace Puzzles.Challenge_CrazyMax
 		public UnitAIDestroyer(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
 		protected override UnitMove GetPositionForMove(GameState fullState)
 		{
-			var suggestedMove = GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Tanks, fullState.EnemyDestroyers);
-			if(DoGrenade(fullState))
+			var grenadeFor = DoGrenade(fullState);
+			if(grenadeFor != null)
 			{
 				_puzzle.Log("Time for a grenade!"); 
-				suggestedMove.IsSkill = true; 
+				_puzzle.Log(grenadeFor);
+				return new UnitMove() { X = grenadeFor.X, Y = grenadeFor.Y, IsSkill = true };
 			}
-
-			return suggestedMove;
+			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Tanks, fullState.EnemyDestroyers);
 		}
 
-		private bool DoGrenade(GameState fullState) 
+		private Entity DoGrenade(GameState fullState) 
 		{
-			if(fullState.MyRage < 60) { return false; }
-			var closestTarget = GetClosestTargetForElement(Entity, fullState.EnemyDestroyers);
-			if(Entity.DistanceTo(closestTarget, Offset) <= 500) { return true; }
-			return false;
+			if(fullState.MyRage < 100) { return null; }
+			//TODO: if we are too close we should pick another
+
+			//Just pick the most annoying enemy
+			return fullState.EnemyScore1 > fullState.EnemyScore2 
+				? fullState.Enemy1Reapers.First()
+				: fullState.Enemy2Reapers.First();
+		
 		}
 	}
 
