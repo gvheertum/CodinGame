@@ -46,7 +46,7 @@ namespace Puzzles.Challenge_CrazyMax
 
 		private Entity DoGrenade(GameState fullState) 
 		{
-			if(fullState.MyRage < 80) { return null; }
+			if(fullState.MyRage < 60) { return null; }
 			//TODO: if we are too close we should pick another
 
 			//Just pick the most annoying enemy
