@@ -91,19 +91,21 @@ namespace Puzzles.Challenge_CrazyMax
 		{
 			//TODO: now the system will just push them move-to as action, but we could have more graceful moving logic ;)
 			var posToGoTo = GetPositionForMove(fullState);
+			var distanceToTarget = posToGoTo.DistanceTo(Entity);
+			int desiredV = distanceToTarget > 300 ? 300 : (int)distanceToTarget;
 			return new UnitMove() 
 			{ 
 				X = posToGoTo.X, 
 				Y = posToGoTo.Y, 
-				V = 300, 
+				V = desiredV, 
 				IsSkill = posToGoTo.IsSkill,
-				Message = $"{Entity.UnitType} - ${posToGoTo.Message}"
+				Message = $"{Entity.UnitType.ToString().Substring(0,2)} t:{posToGoTo.Target?.UnitId.ToString() ?? "-"} (d:{distanceToTarget}) v:{desiredV} {posToGoTo.Message}"
 			};
 		}
 
 		//Positions/action we would like to navigate to
 		protected abstract ActionPosition GetPositionForMove(GameState fullState);
-		protected Position GetMoveFromElementToTargetOrAlternateTarget(Entity unit, IEnumerable<Entity> targetDestinations, IEnumerable<Entity> alternateDestinations = null)
+		protected Entity GetMoveFromElementToTargetOrAlternateTarget(Entity unit, IEnumerable<Entity> targetDestinations, IEnumerable<Entity> alternateDestinations = null)
 		{
 			if(unit == null) { return null; }
 
@@ -113,19 +115,40 @@ namespace Puzzles.Challenge_CrazyMax
 			
 			var moveTo = GetClosestTargetForElement(unit, targetsToUse);
 			if(moveTo == null) { _puzzle.Log("No element to navigate to on the map, ignoring turn"); return null; }
-			_puzzle.Log($"Moving our unit to: {moveTo}");
-			return new Position() { X = moveTo.X, Y = moveTo.Y };
+			_puzzle.Log($"Moving our unit to: {moveTo.X}:{moveTo.Y} ({moveTo.UnitType}:{moveTo.UnitId})");
+			return moveTo;
 		}
 
 		public const int Radius = 6000; //Due to radius the distance can be negative, use the radius to offset values to pos values
 		protected Entity GetClosestTargetForElement(Entity unit, IEnumerable<Entity> targets)
 		{
 			if(!targets?.Any() == true) { return null; }
-			return targets.OrderBy(w => w.DistanceTo(unit)).First();
+			//TODO: consider using the amount of water to determine a multiplier
+			_puzzle.Log($"{targets.Count()} possible targets");
+			var targetDistanceList = targets.Select(t => new EntityDistance(unit,t)).OrderBy(w => w.Distance).ToList();
+			targetDistanceList.ForEach(d => _puzzle.Log(d));
+			return targetDistanceList.First().Destination;
 		}
-
 	}
 
+	//TODO: Move to other part of code
+	public class EntityDistance
+	{
+		public EntityDistance(Entity origin, Entity destination)
+		{
+			Origin = origin;
+			Destination = destination;
+			Distance = origin.DistanceTo(destination);
+		}
+		public double Distance { get; set; }
+		public Entity Origin { get; set; }
+		public Entity Destination { get; set; }
+		public override string ToString()
+		{
+			return $"[o:{Origin.UnitId}] {Origin.X}:{Origin.Y} [t:{Destination.UnitId}] {Destination.X}:{Destination.Y} -> d:{Distance}";
+		}
+	}
+	//TODO: Move to other part of code
 	public class ActionPosition : Position
 	{
 		public static ActionPosition Translate(Position pos) 
@@ -136,6 +159,18 @@ namespace Puzzles.Challenge_CrazyMax
 				Y = pos.Y,
 			};
 		}
+
+		public static ActionPosition Translate(Entity pos) 
+		{
+			return pos == null ? null : new ActionPosition() 
+			{
+				X = pos.X,
+				Y = pos.Y,
+				Target  = pos
+			};
+		}
+
+		public Entity Target { get; set; }
 		public bool IsSkill { get; set; }
 		public string Message { get; set; }
 	}
