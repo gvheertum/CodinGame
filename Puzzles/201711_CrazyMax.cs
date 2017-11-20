@@ -19,6 +19,7 @@ namespace Puzzles.Challenge_CrazyMax
 
 	public class UnitAIReaper : UnitAIBase
 	{
+		//The tar pool of the Reaper increase the mass of all units and prevent the tankers destruction
 		public UnitAIReaper(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
 
 		
@@ -65,6 +66,8 @@ namespace Puzzles.Challenge_CrazyMax
 
 	public class UnitAIDoof : UnitAIBase
 	{
+		
+		//Special: The oil pool of the Doof cancel units friction and prevent Reapers harvesting
 		public UnitAIDoof(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
 		protected override ActionPosition GetPositionForMove(GameState fullState)
 		{
