@@ -22,42 +22,43 @@ namespace Puzzles.Challenge_CrazyMax
 		public UnitAIReaper(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
 
 		
-		protected override UnitMove GetPositionForMove(GameState fullState)
+		protected override ActionPosition GetPositionForMove(GameState fullState)
 		{
 			//Move our reaper to the water sources, if no water present follow our destroyers to allow us to be at the water asap
-			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Water, fullState.Destroyers); //Move to any destroyer close, we want to have them precious waters
+			return ActionPosition.Translate(GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Water, fullState.Destroyers)); //Move to any destroyer close, we want to have them precious waters
 		}
 	}
 
 	public class UnitAIDestroyer : UnitAIBase
 	{
 		public UnitAIDestroyer(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
-		protected override UnitMove GetPositionForMove(GameState fullState)
+		protected override ActionPosition GetPositionForMove(GameState fullState)
 		{
 			var grenadeFor = DoGrenade(fullState);
 			if(grenadeFor != null)
 			{
 				_puzzle.Log("Time for a grenade!"); 
 				_puzzle.Log(grenadeFor);
-				return new UnitMove() { X = grenadeFor.X - 10, Y = grenadeFor.Y - 10, IsSkill = true };
+				return new ActionPosition() { X = grenadeFor.X - 1, Y = grenadeFor.Y - 1, IsSkill = true };
 			}
-			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Tanks, fullState.EnemyDestroyers);
+			return ActionPosition.Translate(GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.Tanks, fullState.EnemyDestroyers));
 		}
 
+		const int DistanceForOurReaperOnGrenade = 1000;
+		const int MaxDistanceToGrenadeTarget = 2000;
+		
 		private Entity DoGrenade(GameState fullState) 
 		{
 			if(fullState.MyRage < 60) { return null; }
 			//TODO: if we are too close we should pick another
-
-			//Just pick the most annoying enemy
-			var suggested = fullState.EnemyScore1 > fullState.EnemyScore2 
-				? fullState.Enemy1Reapers.First()
-				: fullState.Enemy2Reapers.First();
-			if(fullState.MyEntities.Any(r => r.DistanceTo(suggested, Offset) < 500))
-			{
-				_puzzle.Log("We are to close for the grenade, so skip it");
-				return null;
-			}
+			
+			//Pick the element most distant from us
+			var suggested = fullState.EnemyReapers.FirstOrDefault(r => 
+				r.DistanceTo(fullState.MyReapers.First()) < DistanceForOurReaperOnGrenade &&
+				r.DistanceTo(fullState.MyDestroyers.First()) < MaxDistanceToGrenadeTarget
+			);
+			
+			if(suggested == null) { _puzzle.Log("Cannot find target for grenade"); }
 			return suggested;
 		}
 	}
@@ -65,10 +66,10 @@ namespace Puzzles.Challenge_CrazyMax
 	public class UnitAIDoof : UnitAIBase
 	{
 		public UnitAIDoof(PuzzleMain puzzle, Entity entity) : base(puzzle, entity) {}
-		protected override UnitMove GetPositionForMove(GameState fullState)
+		protected override ActionPosition GetPositionForMove(GameState fullState)
 		{
 			//Push this element to reapers all around to mess with them
-			return GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.EnemyReapers);
+			return ActionPosition.Translate(GetMoveFromElementToTargetOrAlternateTarget(Entity, fullState.EnemyReapers));
 		}
 	}
 
@@ -89,12 +90,20 @@ namespace Puzzles.Challenge_CrazyMax
 		public UnitMove GetMove(GameState fullState)
 		{
 			//TODO: now the system will just push them move-to as action, but we could have more graceful moving logic ;)
-			return GetPositionForMove(fullState);
+			var posToGoTo = GetPositionForMove(fullState);
+			return new UnitMove() 
+			{ 
+				X = posToGoTo.X, 
+				Y = posToGoTo.Y, 
+				V = 300, 
+				IsSkill = posToGoTo.IsSkill,
+				Message = $"{Entity.UnitType} - ${posToGoTo.Message}"
+			};
 		}
 
 		//Positions/action we would like to navigate to
-		protected abstract UnitMove GetPositionForMove(GameState fullState);
-		protected UnitMove GetMoveFromElementToTargetOrAlternateTarget(Entity unit, IEnumerable<Entity> targetDestinations, IEnumerable<Entity> alternateDestinations = null)
+		protected abstract ActionPosition GetPositionForMove(GameState fullState);
+		protected Position GetMoveFromElementToTargetOrAlternateTarget(Entity unit, IEnumerable<Entity> targetDestinations, IEnumerable<Entity> alternateDestinations = null)
 		{
 			if(unit == null) { return null; }
 
@@ -105,20 +114,31 @@ namespace Puzzles.Challenge_CrazyMax
 			var moveTo = GetClosestTargetForElement(unit, targetsToUse);
 			if(moveTo == null) { _puzzle.Log("No element to navigate to on the map, ignoring turn"); return null; }
 			_puzzle.Log($"Moving our unit to: {moveTo}");
-			return new UnitMove() { X = moveTo.X, Y = moveTo.Y, V = 300 };
+			return new Position() { X = moveTo.X, Y = moveTo.Y };
 		}
 
 		public const int Radius = 6000; //Due to radius the distance can be negative, use the radius to offset values to pos values
-		public const int Offset = Radius / 2;
 		protected Entity GetClosestTargetForElement(Entity unit, IEnumerable<Entity> targets)
 		{
 			if(!targets?.Any() == true) { return null; }
-			return targets.OrderBy(w => w.DistanceTo(unit, Offset)).First();
+			return targets.OrderBy(w => w.DistanceTo(unit)).First();
 		}
 
 	}
 
-
+	public class ActionPosition : Position
+	{
+		public static ActionPosition Translate(Position pos) 
+		{
+			return pos == null ? null : new ActionPosition() 
+			{
+				X = pos.X,
+				Y = pos.Y,
+			};
+		}
+		public bool IsSkill { get; set; }
+		public string Message { get; set; }
+	}
 
 
 	// ** GAME PLAY
@@ -387,9 +407,10 @@ namespace Puzzles.Challenge_CrazyMax
 		public int Y { get; set; }
 		public int V { get; set; }
 		public bool IsSkill { get; set; }
+		public string Message { get; set; }
 		public override string ToString() 
 		{
-			return IsSkill ? $"SKILL {X} {Y}" : $"{X} {Y} {V}";
+			return IsSkill ? $"SKILL {X} {Y} {Message}" : $"{X} {Y} {V} {Message}";
 		}
 	}
 }
