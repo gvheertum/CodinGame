@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Shared;
+using Framework;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -182,7 +183,7 @@ namespace Puzzles.Challenge_CrazyMax
 	// ** GAME PLAY
 
 
-	public class CrazyMaxPlayer : Shared.PuzzleMain
+	public class CrazyMaxPlayer : PuzzleMain
 	{
 		protected CrazyMaxPlayer(IGameEngine gameEngine) : base(gameEngine)
 		{

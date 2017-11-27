@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Shared;
+using Framework;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -58,7 +59,7 @@ namespace Puzzles.Chuck
 			return $"{Character} -> ({BitMask})";
 		}
 	}
-	public class Solution : Shared.PuzzleMain
+	public class Solution : PuzzleMain
 	{
 
 		protected Solution(IGameEngine gameEngine) : base(gameEngine) { }

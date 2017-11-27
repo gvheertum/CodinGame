@@ -21,6 +21,7 @@ namespace CodinGameExperiments
     {	
 		private const string PuzzlePath = "Puzzles/";
 		private const string SharedPath = "Shared/";
+		private const string FrameworkPath = "Framework/";
 		private const string MergePath = "Merged/";
 
         static void Main(string[] args)
@@ -92,7 +93,7 @@ namespace CodinGameExperiments
 
 		private static FileMerger GetFileMerger() 
 		{
-			return new FileMerger(AppContext.BaseDirectory, PuzzlePath, SharedPath, MergePath);
+			return new FileMerger(AppContext.BaseDirectory, PuzzlePath, SharedPath, FrameworkPath, MergePath);
 		}
 
 		//TODO: Createa logic to run multiple testcases and process the results

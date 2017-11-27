@@ -24,8 +24,9 @@ namespace Helpers
 		private string _sourcePath; //Root path of the sources folder
 		private string _puzzlePath; //Path to the puzzles
 		private string _sharedPath; //Path to the shared files
+		private string _frameworkPath; //Path to the framework files
 		private string _outputPath; //Where to push results to
-		public FileMerger(string sourcePath, string puzzlePath, string sharedPath, string outputPath)
+		public FileMerger(string sourcePath, string puzzlePath, string sharedPath, string frameworkPath, string outputPath)
 		{
 			_sourcePath = GetSourcePathBasedOnRunPath(sourcePath);
 			if(string.IsNullOrWhiteSpace(puzzlePath) || string.IsNullOrWhiteSpace(sharedPath) || string.IsNullOrWhiteSpace(outputPath))
@@ -35,14 +36,17 @@ namespace Helpers
 			_puzzlePath = _sourcePath + puzzlePath;
 			_sharedPath = _sourcePath + sharedPath;
 			_outputPath = _sourcePath + outputPath;
+			_frameworkPath = _sourcePath + frameworkPath;
 			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Puzzle path invalid: {_puzzlePath}"); }
 			if(!System.IO.Directory.Exists(_sharedPath)) { throw new Exception($"Shared path invalid: {_sharedPath}"); }
+			if(!System.IO.Directory.Exists(_frameworkPath)) { throw new Exception($"Framework path invalid: {_frameworkPath}"); }
 			if(!System.IO.Directory.Exists(_outputPath)) { throw new Exception($"Merge path invalid: {_outputPath}"); }
 
 			System.Console.WriteLine($"Merger started with parameters:");
 			System.Console.WriteLine($"Running path: {_sourcePath}");
 			System.Console.WriteLine($"Puzzle path: {_puzzlePath}");
 			System.Console.WriteLine($"Shared path: {_sharedPath}");
+			System.Console.WriteLine($"Framework path: {_frameworkPath}");
 			System.Console.WriteLine($"Output path: {_outputPath}");
 		}
 
@@ -59,9 +63,11 @@ namespace Helpers
 			Console.WriteLine($"Merging file for: {writeFile}");
 			var outputFile = _sourcePath + "Merged/" + new System.IO.FileInfo(writeFile).Name + ".merged";
 			
+			//TODO: identify per file what is needed
 			var files = new List<ReadRes>();
 			files.Add(ReadFile(writeFile));
 			files.AddRange(GetSharedFiles());
+			files.AddRange(GetFrameworkFiles());
 
 			StringBuilder resBuilder = new StringBuilder();
 			files.SelectMany(f => f.Usings).Distinct().ToList().ForEach(u => resBuilder.AppendLine(u));
@@ -109,13 +115,17 @@ namespace Helpers
 		}
 
 
-		public List<ReadRes> GetSharedFiles()
+		private List<ReadRes> GetSharedFiles()
 		{
 			var fileRes = GetCodeFilesInPath(_sharedPath).Select(ReadFile).ToList();
 			return fileRes;
 		}
 
-		
+		private List<ReadRes> GetFrameworkFiles()
+		{
+			var fileRes = GetCodeFilesInPath(_frameworkPath).Select(ReadFile).ToList();
+			return fileRes;
+		}
 
 
 		//Read a single file and split the usings and the file from each other

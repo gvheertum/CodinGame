@@ -16,7 +16,6 @@
     <Content Include=".vscode\settings.json" />
     <Content Include="Puzzles\07_ThereIsNoSpoon.cs" />
     <Content Include="Puzzles\08_MarsLander.cs" />
-    <Content Include="Shared\PuzzleMain.cs" />
     <Content Include="Shared\IGameEngine.cs" />
     <Content Include=".gitignore" />
     <Content Include="Shared\StringBufferGameEngine.cs" />
@@ -62,7 +61,11 @@
     <Content Include="Puzzles\15_WarCards.cs" />
     <Content Include="ProgramRunners\PuzzleTestRunners\WarCards.cs" />
     <Content Include=".vscode\launch.json" />
-    <Content Include="Puzzles\16_DontPanic.cs" />    
+    <Content Include="Puzzles\16_DontPanic.cs" />
     <Content Include="Puzzles\201711_CrazyMax.cs" />
+    <Content Include="Framework\CodinGameProxyEngine.cs" />
+    <Content Include="Helpers\CustomGameEngines\StringBufferGameEngine.cs" />
+    <Content Include="Framework\IGameEngine.cs" />
+    <Content Include="Framework\PuzzleMain.cs" />
   </ItemGroup>
 </Project>

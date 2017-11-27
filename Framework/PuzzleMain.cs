@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Shared
+namespace Framework
 {
 	//Shared base for the puzzles. This allows us to have a simpler working of the game objects with simplified shorthands.
 	// Reading: Console.ReadLine -> ReadLine

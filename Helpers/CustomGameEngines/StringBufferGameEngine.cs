@@ -4,8 +4,8 @@ using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
-
-namespace Shared
+using Framework;
+namespace Helpers.CustomGameEngines
 {
 	//Game engine based on a simple string buffer
 	public class StringBufferGameEngine : IGameEngine

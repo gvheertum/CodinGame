@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Shared;
+using Framework;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -15,7 +16,7 @@ using Shared;
 
 namespace Puzzles.DontPanic
 {
-	public class DontPanicPlayer : Shared.PuzzleMain
+	public class DontPanicPlayer : PuzzleMain
 	{
 		protected DontPanicPlayer(IGameEngine gameEngine) : base(gameEngine)
 		{
@@ -23,7 +24,7 @@ namespace Puzzles.DontPanic
 
 		static void Main(string[] args)
 		{
-			new DontPanicPlayer(new Shared.CodingGameProxyEngine()).Run();
+			new DontPanicPlayer(new CodingGameProxyEngine()).Run();
 		}
 
 		public override void Run()

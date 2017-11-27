@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Shared;
+using Framework;
+using Helpers.CustomGameEngines;
 
 namespace Helpers.TestRunner
 {

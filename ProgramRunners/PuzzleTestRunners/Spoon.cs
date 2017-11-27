@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helpers.TestRunner;
 using Shared;
+using Framework;
 
 namespace ProgramRunners.PuzzleTestRunners
 {

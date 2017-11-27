@@ -5,6 +5,8 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Shared;
+using Framework;
+
 //https://www.codingame.com/ide/puzzle/shadows-of-the-knight-episode-1
 /**
  * Auto-generated code below aims at helping you parse

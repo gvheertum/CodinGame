@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Shared
+namespace Framework
 {
 	//Game engine to run in the coding game scope, this will forward the read/write lines to the engine of CodinGame
 	public class CodingGameProxyEngine : IGameEngine

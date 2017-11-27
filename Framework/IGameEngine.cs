@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Shared
+namespace Framework
 {
 	//Game engine to link into the puzzles. The gameengine determines the I/O for the puzzle.
 	public interface IGameEngine

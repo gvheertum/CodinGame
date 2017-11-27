@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Shared;
-
+using Framework;
 namespace Puzzles.Horses
 {
 

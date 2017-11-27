@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Shared;
+using Framework;
 
 /**
  * https://www.codingame.com/ide/puzzle/mime-type
@@ -13,7 +14,7 @@ using Shared;
  **/
 namespace Puzzles.Mime
 {
-	public class Solution : Shared.PuzzleMain
+	public class Solution : PuzzleMain
 	{
 		public class MimeType
 		{
@@ -37,7 +38,7 @@ namespace Puzzles.Mime
 
 		static void Main(string[] args)
 		{
-			var sol = new Solution(new Shared.CodingGameProxyEngine());
+			var sol = new Solution(new CodingGameProxyEngine());
 			sol.Run();
 		}
 		public override void Run()

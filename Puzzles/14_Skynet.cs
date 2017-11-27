@@ -7,6 +7,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Shared;
+using Framework;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -14,7 +15,7 @@ using Shared;
  **/
 namespace Puzzles.Skynet
 {
-	public class SkynetPlayer : Shared.PuzzleMain
+	public class SkynetPlayer : PuzzleMain
 	{
 		protected SkynetPlayer(IGameEngine gameEngine) : base(gameEngine)
 		{
