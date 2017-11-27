@@ -15,9 +15,11 @@ namespace Helpers
 	{
 		public class ReadRes
 		{
+			public string FullFileName { get; set; }
 			public string FileName { get; set; }
-			public List<string> Lines { get; set;}
-			public List<string> Usings { get; set; }
+			public List<string> Requires {get;set;} = new List<string>();
+			public List<string> Lines { get; set;} = new List<string>();
+			public List<string> Usings { get; set; } = new List<string>();
 		}
 
 
@@ -37,17 +39,18 @@ namespace Helpers
 			_sharedPath = _sourcePath + sharedPath;
 			_outputPath = _sourcePath + outputPath;
 			_frameworkPath = _sourcePath + frameworkPath;
-			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Puzzle path invalid: {_puzzlePath}"); }
-			if(!System.IO.Directory.Exists(_sharedPath)) { throw new Exception($"Shared path invalid: {_sharedPath}"); }
-			if(!System.IO.Directory.Exists(_frameworkPath)) { throw new Exception($"Framework path invalid: {_frameworkPath}"); }
-			if(!System.IO.Directory.Exists(_outputPath)) { throw new Exception($"Merge path invalid: {_outputPath}"); }
+			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Working from: {_sourcePath}"); }
+			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Puzzle path invalid: {puzzlePath}"); }
+			if(!System.IO.Directory.Exists(_sharedPath)) { throw new Exception($"Shared path invalid: {sharedPath}"); }
+			if(!System.IO.Directory.Exists(_frameworkPath)) { throw new Exception($"Framework path invalid: {frameworkPath}"); }
+			if(!System.IO.Directory.Exists(_outputPath)) { throw new Exception($"Merge path invalid: {outputPath}"); }
 
-			System.Console.WriteLine($"Merger started with parameters:");
-			System.Console.WriteLine($"Running path: {_sourcePath}");
-			System.Console.WriteLine($"Puzzle path: {_puzzlePath}");
-			System.Console.WriteLine($"Shared path: {_sharedPath}");
-			System.Console.WriteLine($"Framework path: {_frameworkPath}");
-			System.Console.WriteLine($"Output path: {_outputPath}");
+			LogDefault($"Merger started with parameters:");
+			LogDefault($"Running path: {_sourcePath}");
+			LogDefault($"Puzzle path: {puzzlePath}");
+			LogDefault($"Shared path: {sharedPath}");
+			LogDefault($"Framework path: {frameworkPath}");
+			LogDefault($"Output path: {outputPath}");
 		}
 
 		
@@ -60,21 +63,29 @@ namespace Helpers
 
 		private void MergePuzzleFile(string writeFile)
 		{
-			Console.WriteLine($"Merging file for: {writeFile}");
-			var outputFile = _sourcePath + "Merged/" + new System.IO.FileInfo(writeFile).Name + ".merged";
 			
-			//TODO: identify per file what is needed
+			var fileToWriteInfo = new System.IO.FileInfo(writeFile);
+			LogInfo($"Merging file for: {fileToWriteInfo.Name}");
+			var outputFile = _sourcePath + "Merged/" + fileToWriteInfo.Name + ".merged";
+			
 			var files = new List<ReadRes>();
-			files.Add(ReadFile(writeFile));
-			files.AddRange(GetSharedFiles());
-			files.AddRange(GetFrameworkFiles());
+			var myFile = ReadFile(writeFile);
+			files.Add(myFile);
+			
+			var fwFiles = GetFrameworkFiles();
+			files.AddRange(fwFiles);
+			
+			var sharedFiles = FilterSharedFiles(GetSharedFiles(), myFile);
+			files.AddRange(sharedFiles);
+
+			LogInfo($"Writing 1 file with {fwFiles.Count()} framework and {sharedFiles.Count()} shared files");
 
 			StringBuilder resBuilder = new StringBuilder();
 			files.SelectMany(f => f.Usings).Distinct().ToList().ForEach(u => resBuilder.AppendLine(u));
 			int fileIdx = 0;
 			files.ForEach(f => 
 			{
-				resBuilder.AppendLine($"//File {fileIdx.ToString().PadLeft(2,'0')}: {f.FileName}");
+				resBuilder.AppendLine($"//File {fileIdx.ToString().PadLeft(2,'0')}: {f.FullFileName}");
 				resBuilder.AppendJoin(Environment.NewLine, f.Lines);
 			
 				//For the first file flush additional empty lines to flag starting of shared files logic
@@ -88,29 +99,44 @@ namespace Helpers
 				fileIdx++;
 			});
 			System.IO.File.WriteAllText(outputFile, resBuilder.ToString());
-			Console.WriteLine($"Merged file written to {outputFile}");
+			LogSuccess($"Merged file written to {outputFile}");
 		}
 
-		
+		private IEnumerable<ReadRes> FilterSharedFiles(IEnumerable<ReadRes> sharedFiles, ReadRes puzzleFile)
+		{
+			var sharedFilesToInclude = puzzleFile.Requires.Select(req => sharedFiles.FirstOrDefault(shared => FileNameMatch(shared.FileName, req))).Where(i => i!= null).ToList();
+			if(sharedFilesToInclude.Count != puzzleFile.Requires.Count) 
+			{ 
+				LogError($"X Include count for file incorrect, expected {puzzleFile.Requires.Count}, but found {sharedFilesToInclude.Count} shared");
+			}
+			return sharedFilesToInclude;
+		}
+
+		private bool FileNameMatch(string fileName, string requiredToken)
+		{
+			fileName = fileName.ToLowerInvariant().Replace(".cs", "");
+			requiredToken = requiredToken.ToLowerInvariant().Replace(".cs", "");
+			return string.Equals(fileName, requiredToken, StringComparison.OrdinalIgnoreCase);
+		}
+
 		public void WatchPuzzleFiles()
 		{
 			var dirInfo = new System.IO.DirectoryInfo(_puzzlePath);
 			var watchDir = dirInfo.FullName;
-			Console.WriteLine($"Watching folder: {watchDir}");
+			LogInfo($"Watching folder: {watchDir}");
 			System.IO.FileSystemWatcher fsw = new FileSystemWatcher(watchDir);
 			FileSystemEventHandler fswChanged = (sender, e) => 
 			{
-				Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss")}: detected change");
-				System.Console.WriteLine($"Detected: {e.ChangeType} @ {e.FullPath} ({e.Name}");
+				LogSuccess($"{DateTime.Now.ToString("HH:mm:ss")}: Detected change {e.ChangeType} @ {e.FullPath} ({e.Name}");
 				MergePuzzleFiles(); //Merging all puzzles
 				Console.Beep();
 			};
 			fsw.Changed += fswChanged;
 			
-			System.Console.WriteLine("Starting initial merge");
+			LogInfo("Starting initial merge");
 			fswChanged.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, _sourcePath, "./")); 
 			
-			Console.WriteLine($"Waiting for changes");			
+			LogDefault($"Waiting for changes");			
 			while(true) { fsw.WaitForChanged(WatcherChangeTypes.Changed); }
 		}
 
@@ -136,14 +162,21 @@ namespace Helpers
 				throw new Exception($"Unknown file: {filePath}");
 			}
 			var lines = System.IO.File.ReadAllLines(filePath);
+			var fileInfo = new System.IO.FileInfo(filePath);
+			var fileName = fileInfo.Name;
 
 			var usingLines = new List<string>();
 			var codeLines = new List<string>();
+			var requireLines = new List<string>();
 			lines.ToList().ForEach(line => 
 			{
-				if(line.StartsWith("using "))
+				if(line.StartsWith("using ", StringComparison.OrdinalIgnoreCase))
 				{
 					usingLines.Add(line);
+				}
+				else if(line.StartsWith("//require:", StringComparison.OrdinalIgnoreCase))
+				{
+					requireLines.Add(line.Split(new [] {':'}).Last().Trim());
 				}
 				else 
 				{
@@ -153,9 +186,11 @@ namespace Helpers
 
 			return new ReadRes()
 			{
-				FileName = filePath,
+				FullFileName = filePath,
+				FileName = fileName,
 				Lines = codeLines,
-				Usings = usingLines
+				Usings = usingLines,
+				Requires = requireLines
 			};
 		}
 		
@@ -172,6 +207,34 @@ namespace Helpers
 		{
 			var files = System.IO.Directory.GetFiles(path);
 			return files.Where(f => f.EndsWith(".cs")).ToList();
+		}
+
+		private void LogInfo(string message)
+		{
+			LogWithColor(ConsoleColor.Blue, message);
+		}
+
+		private void LogDefault(string message)
+		{
+			LogWithColor(ConsoleColor.Gray, message);
+		}
+
+		private void LogSuccess(string message)
+		{
+			LogWithColor(ConsoleColor.Green, message);
+		}
+
+		private void LogError(string message)
+		{
+			LogWithColor(ConsoleColor.Red, message);
+		}
+
+		private void LogWithColor(ConsoleColor color, string message)
+		{
+			var c = Console.ForegroundColor;
+			Console.ForegroundColor = color;
+			System.Console.WriteLine(message);
+			Console.ForegroundColor = c;
 		}
 
 	}
