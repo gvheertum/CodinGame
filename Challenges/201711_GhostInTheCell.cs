@@ -21,6 +21,11 @@ namespace Challenges.GhostInTheCell
 		public int Production { get; set; }
 		public bool IsMine { get { return OwnedBy == 1; } }
 		public bool IsNeutral { get { return OwnedBy == 0; } }
+
+		public override string ToString()
+		{
+			return $"[Factory:{NodeIndex}] Cyb: {NrOfCyborgs} Prod: {Production} Owner: {OwnedBy}";
+		}
 	}
 	public class FactoryNodeLink
 	{
@@ -63,53 +68,66 @@ namespace Challenges.GhostInTheCell
 
 
 				// Any valid action, such as "WAIT" or "MOVE source destination cyborgs"
-				var action = CalculateAction(gameState);
-				Log($"Action to take: {action}");
-				WriteLine(action.ToString());
+				//WOOD 2 allows us to use multiple actions
+				var actions = CalculateActions(gameState).ToList();
+				actions.ForEach(action => Log($"Action to take: {action}"));
+				WriteLine(string.Join(";", actions.Select(a => a.ToString())));
 			}
 		}
 
-		private Action CalculateAction(PlayingField field)
+		private IEnumerable<Action> CalculateActions(PlayingField field)
+		{
+			List<Action> actions = new List<Action>();
+			actions.AddRange(GetNeutralAttackActions(field));
+			actions.AddRange(GetEnemyAttackActions(field));
+			return actions;
+		}
+
+		private IEnumerable<Action> GetNeutralAttackActions(PlayingField field)
+		{
+			var myFactories= field.Factories.Where(f => f.IsMine).ToList();
+			var neutralFactories = field.Factories.Where(f => f.IsNeutral).ToList();
+
+			List<Action> neutralGainActions = new List<Action>();
+			//Filter enemies we are linked to and where we have more nodes
+			return neutralFactories.Where(e => e.LinkedNodes.Any(l => l.IsMine)).Select(e => GetBestMoveToNode(e, myFactories, false)).Where(e => e != null).ToList();
+
+		}
+
+		private IEnumerable<Action> GetEnemyAttackActions(PlayingField field)
 		{
 			var myFactories= field.Factories.Where(f => f.IsMine).ToList();
 			var enemies = field.Factories.Where(f => !f.IsNeutral && !f.IsMine).ToList();
-			var neutralFactories = field.Factories.Where(f => f.IsNeutral).ToList();
-			//Check if there is a neutral factory attached to one of mine
-			var possibleOriginsToNeutralFactories = myFactories.Where(f=> f.NrOfCyborgs > 1 && f.LinkedNodes.Any(l => l.IsNeutral));
-			Log($"Found {possibleOriginsToNeutralFactories.Count()} nodes with neutral links");
-			if(possibleOriginsToNeutralFactories.Any())
-			{
-				var origin = possibleOriginsToNeutralFactories.First();
-				var dest = origin.LinkedNodes.First(d => d.IsNeutral);
-				return new MoveTroopsAction()
-				{
-					From = origin.NodeIndex,
-					To = dest.NodeIndex,
-					AmountOfTroops = (int)Math.Ceiling(origin.NrOfCyborgs / 2.0),
-				};
-			}
-			Log("No neutral nodes to take, trying to take the enemy");
+		
+			//Filter enemies we are linked to and where we have more nodes
+			return enemies.Where(e => e.LinkedNodes.Any(l => l.IsMine)).Select(e => GetBestMoveToNode(e, myFactories, true)).Where(e => e != null).ToList();
+		}
 
-			//If not, check if there is an enemy factory near, which I can take
-			if(enemies.Any())
+
+
+		//Get the best node to move to
+		private Action GetBestMoveToNode(FactoryNode destinationNode, IEnumerable<FactoryNode> myNodes, bool requireUpperHand)
+		{
+			var myDirectLink = destinationNode.LinkedNodes
+				.Where(n => n.IsMine && (!requireUpperHand || n.NrOfCyborgs > destinationNode.NrOfCyborgs))
+				.OrderByDescending(n => n.NrOfCyborgs)
+				.FirstOrDefault();
+			int amountToSend = requireUpperHand ? destinationNode.NrOfCyborgs : (int)Math.Ceiling((myDirectLink?.NrOfCyborgs ?? 0) / 2.0);
+			return myDirectLink != null ? GenerateMovementAction(myDirectLink, destinationNode, amountToSend) : null;
+		}
+
+		//Generate a movement and substract the amount of troops
+		private Action GenerateMovementAction(FactoryNode from, FactoryNode to, int amountOfTroops)
+		{
+			if(!from.IsMine) {throw new Exception($"Attempting to send from node {from} which is not ours"); }
+			if(from.NrOfCyborgs < amountOfTroops) { Log($"!! Sending all or more troops ({amountOfTroops}) than available from {from}"); }
+			from.NrOfCyborgs = from.NrOfCyborgs - amountOfTroops;
+			return new MoveTroopsAction()
 			{
-				var enemyToTake = enemies.OrderBy(e => e.NrOfCyborgs).First(); //Smallest enemy camp
-				var myDirectLink = enemyToTake.LinkedNodes.Where(n => n.IsMine && n.NrOfCyborgs > enemyToTake.NrOfCyborgs).OrderByDescending(n => n.NrOfCyborgs).FirstOrDefault();
-				if(myDirectLink != null)
-				{
-					Log("Found a direct link to the enemy which we can directly take");
-					return new MoveTroopsAction()
-					{
-						From = myDirectLink.NodeIndex,
-						To = enemyToTake.NodeIndex,
-						AmountOfTroops = enemyToTake.NrOfCyborgs + 1
-					};
-				}
-				//Else send a random item or somehting	
-			}
-			Log("Dunno what to do, just wait here?");
-			//Dunno, wait and weep
-			return new WaitAction();
+				From = from.NodeIndex,
+				To = to.NodeIndex,
+				AmountOfTroops = amountOfTroops
+			};
 		}
 
 		//TODO: we could value each step and pick the best one?
@@ -227,6 +245,15 @@ namespace Challenges.GhostInTheCell
 			public override string ToString() 
 			{
 				return "WAIT";
+			}
+		}
+
+		public class MessageAction : Action
+		{
+			public string Message {get;set;}
+			public override string ToString() 
+			{
+				return $"MSG {Message}";
 			}
 		}
 		public class MoveTroopsAction : Action
