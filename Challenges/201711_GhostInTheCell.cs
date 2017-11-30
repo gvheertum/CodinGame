@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Framework;
 
+//https://www.codingame.com/ide/puzzle/ghost-in-the-cell
 /**
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
@@ -62,11 +63,6 @@ namespace Challenges.GhostInTheCell
 			while (IsRunning())
 			{
 				UpdateGameState(gameState);
-
-				// Write an action using WriteLine()
-				// To debug: Error.WriteLine("Debug messages...");
-
-
 				// Any valid action, such as "WAIT" or "MOVE source destination cyborgs"
 				//WOOD 2 allows us to use multiple actions
 				var actions = CalculateActions(gameState).ToList();
@@ -80,6 +76,9 @@ namespace Challenges.GhostInTheCell
 			List<Action> actions = new List<Action>();
 			actions.AddRange(GetNeutralAttackActions(field));
 			actions.AddRange(GetEnemyAttackActions(field));
+			actions.Add(new MessageAction($"Taking: {actions.Count} actions"));
+			actions.Add(new WaitAction());
+			
 			return actions;
 		}
 
@@ -152,14 +151,13 @@ namespace Challenges.GhostInTheCell
 				if(entityType == "FACTORY")
 				{
 					var factoryToUpdate = field.Factories.First(f => f.NodeIndex == entityId);
-					Log($"Updating factor: {factoryToUpdate.NodeIndex}");
 					factoryToUpdate.OwnedBy = arg1; //arg1: player that owns the factory: 1 for you, -1 for your opponent and 0 if neutral
 					factoryToUpdate.NrOfCyborgs = arg2; //arg2: number of cyborgs in the factory
 					factoryToUpdate.Production = arg3; //arg3: factory production (between 0 and 3)
 				}
 				else if(entityType == "TROOP")
 				{
-					Log("Found troop data, ignoring for now");
+					//Log("Found troop data, ignoring for now");
 				}
 			}
 		}
@@ -250,6 +248,7 @@ namespace Challenges.GhostInTheCell
 
 		public class MessageAction : Action
 		{
+			public MessageAction(string msg) { Message = msg; }
 			public string Message {get;set;}
 			public override string ToString() 
 			{
