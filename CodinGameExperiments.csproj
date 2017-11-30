@@ -62,10 +62,11 @@
     <Content Include="ProgramRunners\PuzzleTestRunners\WarCards.cs" />
     <Content Include=".vscode\launch.json" />
     <Content Include="Puzzles\16_DontPanic.cs" />
-    <Content Include="Puzzles\201711_CrazyMax.cs" />
     <Content Include="Framework\CodinGameProxyEngine.cs" />
     <Content Include="Helpers\CustomGameEngines\StringBufferGameEngine.cs" />
     <Content Include="Framework\IGameEngine.cs" />
     <Content Include="Framework\PuzzleMain.cs" />
+    <Content Include="Challenges\201711_CrazyMax.cs" />
+    <Content Include="Challenges\201711_GhostInTheCell.cs" />
   </ItemGroup>
 </Project>

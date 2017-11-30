@@ -20,6 +20,7 @@ namespace CodinGameExperiments
     class Program
     {	
 		private const string PuzzlePath = "Puzzles/";
+		private const string ChallengePath = "Challenges/";
 		private const string SharedPath = "Shared/";
 		private const string FrameworkPath = "Framework/";
 		private const string MergePath = "Merged/";
@@ -88,12 +89,12 @@ namespace CodinGameExperiments
 		{
 			var merger = GetFileMerger();
 			System.Console.WriteLine($"Starting puzzle file watcher");
-			merger.WatchPuzzleFiles();
+			merger.WatchFolders();
 		}
 
 		private static FileMerger GetFileMerger() 
 		{
-			return new FileMerger(AppContext.BaseDirectory, PuzzlePath, SharedPath, FrameworkPath, MergePath);
+			return new FileMerger(AppContext.BaseDirectory, PuzzlePath, ChallengePath, SharedPath, FrameworkPath, MergePath);
 		}
 
 		//TODO: Createa logic to run multiple testcases and process the results

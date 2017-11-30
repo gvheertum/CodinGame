@@ -25,10 +25,11 @@ namespace Helpers
 
 		private string _sourcePath; //Root path of the sources folder
 		private string _puzzlePath; //Path to the puzzles
+		private string _challengePath; //Path to the challenges
 		private string _sharedPath; //Path to the shared files
 		private string _frameworkPath; //Path to the framework files
 		private string _outputPath; //Where to push results to
-		public FileMerger(string sourcePath, string puzzlePath, string sharedPath, string frameworkPath, string outputPath)
+		public FileMerger(string sourcePath, string puzzlePath, string challengePath, string sharedPath, string frameworkPath, string outputPath)
 		{
 			_sourcePath = GetSourcePathBasedOnRunPath(sourcePath);
 			if(string.IsNullOrWhiteSpace(puzzlePath) || string.IsNullOrWhiteSpace(sharedPath) || string.IsNullOrWhiteSpace(outputPath))
@@ -36,11 +37,13 @@ namespace Helpers
 				throw new Exception("Invalid data");
 			}
 			_puzzlePath = _sourcePath + puzzlePath;
+			_challengePath = _sourcePath + challengePath;
 			_sharedPath = _sourcePath + sharedPath;
 			_outputPath = _sourcePath + outputPath;
 			_frameworkPath = _sourcePath + frameworkPath;
-			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Working from: {_sourcePath}"); }
+			if(!System.IO.Directory.Exists(_sourcePath)) { throw new Exception($"Working from: {_sourcePath}"); }
 			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Puzzle path invalid: {puzzlePath}"); }
+			if(!System.IO.Directory.Exists(_challengePath)) { throw new Exception($"Challenge path invalid: {challengePath}"); }
 			if(!System.IO.Directory.Exists(_sharedPath)) { throw new Exception($"Shared path invalid: {sharedPath}"); }
 			if(!System.IO.Directory.Exists(_frameworkPath)) { throw new Exception($"Framework path invalid: {frameworkPath}"); }
 			if(!System.IO.Directory.Exists(_outputPath)) { throw new Exception($"Merge path invalid: {outputPath}"); }
@@ -48,6 +51,7 @@ namespace Helpers
 			LogDefault($"Merger started with parameters:");
 			LogDefault($"Running path: {_sourcePath}");
 			LogDefault($"Puzzle path: {puzzlePath}");
+			LogDefault($"Puzzle path: {challengePath}");
 			LogDefault($"Shared path: {sharedPath}");
 			LogDefault($"Framework path: {frameworkPath}");
 			LogDefault($"Output path: {outputPath}");
@@ -58,15 +62,16 @@ namespace Helpers
 		//Start writing the merge files for the puzzle files in the puzzle folder
 		public void MergePuzzleFiles()
 		{
-			GetCodeFilesInPath(_puzzlePath).ForEach(file => MergePuzzleFile(file));
+			GetCodeFilesInPath(_puzzlePath).ForEach(file => MergePuzzleFile(file, "puzzle"));
+			GetCodeFilesInPath(_challengePath).ForEach(file => MergePuzzleFile(file, "challenge"));
 		}
 
-		private void MergePuzzleFile(string writeFile)
+		private void MergePuzzleFile(string writeFile, string prefix)
 		{
 			
 			var fileToWriteInfo = new System.IO.FileInfo(writeFile);
 			LogInfo($"Merging file for: {fileToWriteInfo.Name}");
-			var outputFile = _sourcePath + "Merged/" + fileToWriteInfo.Name + ".merged";
+			var outputFile = _sourcePath + "Merged/" + prefix + "." + fileToWriteInfo.Name + ".merged";
 			
 			var files = new List<ReadRes>();
 			var myFile = ReadFile(writeFile);
@@ -119,12 +124,24 @@ namespace Helpers
 			return string.Equals(fileName, requiredToken, StringComparison.OrdinalIgnoreCase);
 		}
 
-		public void WatchPuzzleFiles()
+		public void WatchFolders()
 		{
-			var dirInfo = new System.IO.DirectoryInfo(_puzzlePath);
+			List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
+			watchers.Add(WatchSpecificFolder(_puzzlePath, false));
+			watchers.Add(WatchSpecificFolder(_challengePath, false));
+			watchers.Add(WatchSpecificFolder(_sharedPath, true));
+
+			LogDefault($"Waiting for changes");							
+			while(true) { Thread.Sleep(1000); }
+		}
+
+		public FileSystemWatcher WatchSpecificFolder(string folder, bool invokeAfterCreation)
+		{
+			var dirInfo = new System.IO.DirectoryInfo(folder);
 			var watchDir = dirInfo.FullName;
 			LogInfo($"Watching folder: {watchDir}");
 			System.IO.FileSystemWatcher fsw = new FileSystemWatcher(watchDir);
+			fsw.EnableRaisingEvents = true;
 			FileSystemEventHandler fswChanged = (sender, e) => 
 			{
 				LogSuccess($"{DateTime.Now.ToString("HH:mm:ss")}: Detected change {e.ChangeType} @ {e.FullPath} ({e.Name}");
@@ -133,11 +150,12 @@ namespace Helpers
 			};
 			fsw.Changed += fswChanged;
 			
-			LogInfo("Starting initial merge");
-			fswChanged.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, _sourcePath, "./")); 
-			
-			LogDefault($"Waiting for changes");			
-			while(true) { fsw.WaitForChanged(WatcherChangeTypes.Changed); }
+			if(invokeAfterCreation)
+			{
+				LogInfo("Starting initial merge");
+				fswChanged.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, _sourcePath, "./")); 
+			}
+			return fsw;
 		}
 
 
