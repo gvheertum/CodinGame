@@ -213,6 +213,10 @@ namespace Challenges.CrazyMax
 				moves.AddRange(gameState.MyReapers.Select(u => aiFactory.GetAIForUnit(u).GetMove(gameState)));
 				moves.AddRange(gameState.MyDestroyers.Select(u => aiFactory.GetAIForUnit(u).GetMove(gameState)));
 				moves.AddRange(gameState.MyDoofs.Select(u => aiFactory.GetAIForUnit(u).GetMove(gameState)));
+				while(moves.Count < 3)
+				{
+					moves.Add(new UnitWait());
+				}
 				moves.ForEach(m => WriteUnitMove(m));
 
 				boardReader.Turn++;
@@ -451,6 +455,14 @@ namespace Challenges.CrazyMax
 		public override string ToString() 
 		{
 			return IsSkill ? $"SKILL {X} {Y} {Message}" : $"{X} {Y} {V} {Message}";
+		}
+	}
+
+	public class UnitWait : UnitMove
+	{
+		public override string ToString()
+		{
+			return "WAIT";
 		}
 	}
 }
