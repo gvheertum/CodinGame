@@ -1,4 +1,7 @@
-//https://www.codingame.com/ide/puzzle/skynet-revolution-episode-1
+//require: Node.cs
+//require: NodeRoute.cs
+//require: RouteCalculator.cs
+
 
 using System;
 using System.Linq;
@@ -13,17 +16,26 @@ using Framework;
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
  **/
+//https://www.codingame.com/ide/puzzle/skynet-revolution-episode-1
+//https://www.codingame.com/ide/puzzle/skynet-revolution-episode-2
 namespace Puzzles.Skynet
 {
+	public enum SkynetPhase
+	{
+		Episode1,
+		Episode2
+	}
 	public class SkynetPlayer : PuzzleMain
 	{
-		protected SkynetPlayer(IGameEngine gameEngine) : base(gameEngine)
+		private SkynetPhase _phase;
+		protected SkynetPlayer(IGameEngine gameEngine, SkynetPhase phase) : base(gameEngine)
 		{
+			_phase = phase;
 		}
 
 		static void Main(string[] args)
 		{
-			new SkynetPlayer(new CodingGameProxyEngine()).Run();
+			new SkynetPlayer(new CodingGameProxyEngine(), SkynetPhase.Episode2).Run();
 		}
 
 		public class SkyNetNode : Shared.Node<SkyNetNode>
@@ -135,8 +147,18 @@ namespace Puzzles.Skynet
 		}
 		private CutOff MakeSuggestionForCutOff(List<NodeRoute<SkyNetNode>> routesForSkyNet, List<SkyNetNode> nodes)
 		{
+			switch(_phase)
+			{
+				case SkynetPhase.Episode1: return MakeSuggestionForCutOffEpisode1(routesForSkyNet, nodes);
+				case SkynetPhase.Episode2: return MakeSuggestionForCutOffEpisode2(routesForSkyNet, nodes);
+				default: throw new NotImplementedException($"No scenario for this phase: {_phase}");
+			}
+		}
+
+		private CutOff MakeSuggestionForCutOffEpisode1(List<NodeRoute<SkyNetNode>> routesForSkyNet, List<SkyNetNode> nodes)
+		{
 			var routeToBreak = routesForSkyNet.OrderBy(r => r.RouteLength).FirstOrDefault();
-			if(routeToBreak == null) { return GetRandomCut(nodes); }
+			if(routeToBreak == null) { return GetRandomCut(nodes, SkynetPhase.Episode1); }
 
 			return new CutOff() 
 			{
@@ -145,10 +167,24 @@ namespace Puzzles.Skynet
 			};
 		}
 
-		private CutOff GetRandomCut(List<SkyNetNode> nodes) 
+		private CutOff MakeSuggestionForCutOffEpisode2(List<NodeRoute<SkyNetNode>> routesForSkyNet, List<SkyNetNode> nodes)
+		{
+			Log("Finding breakline for ep2");
+			var routeToBreak = routesForSkyNet.OrderBy(r => r.RouteLength).FirstOrDefault();
+			if(routeToBreak == null) { return GetRandomCut(nodes, SkynetPhase.Episode1); }
+
+			return new CutOff() 
+			{
+				Index1 = routeToBreak.NodesToTake.Last().NodeIndex,
+				Index2 = routeToBreak.NodesToTake.Skip(routeToBreak.NodesToTake.Count-2).First().NodeIndex
+			};
+		}
+
+		private CutOff GetRandomCut(List<SkyNetNode> nodes, SkynetPhase phase) 
 		{
 			Log("!! The system wants a cut, but there seems to be no realistic route to the exit node, so server a random route");
 			var nodeToBreak = nodes.First(n => n.LinkedNodes.Any());
+			//TODO: Find a node that CAN be severed;
 			return new CutOff()
 			{
 				Index1 = nodeToBreak.NodeIndex,
@@ -164,6 +200,11 @@ namespace Puzzles.Skynet
 				Log($"Node {nodeId} -> Exit");
 				nodes[nodeId].IsExitNode = true;
 			}
+		}
+
+		private bool LinkCanBeSevered(SkyNetNode n1, SkyNetNode n2)
+		{
+			return n1.IsExitNode || n2.IsExitNode;
 		}
 
 		private void RemoveNodeLinks(Dictionary<int, SkyNetNode> nodes, int idx1, int idx2)
