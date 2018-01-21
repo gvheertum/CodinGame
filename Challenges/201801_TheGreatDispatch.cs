@@ -108,9 +108,9 @@ namespace Challenges.TheGreatDispatch
 				var truckToFill = trucksToFill.FirstOrDefault(t => t.AvailableVolume >= b.Volume);
 				if(truckToFill == null) 
 				{
-					throw new Exception($"Cannot find a truck for weight: {b.Weight}");
+					throw new Exception($"Cannot find a truck for weight: {b.Volume}");
 				}
-				Log($"{b} -> {truckToFill}");
+				//Log($"{b} -> {truckToFill}");
 				truckToFill.AddBox(b);
 			});
 		}
