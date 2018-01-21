@@ -70,5 +70,7 @@
     <Content Include="Challenges\201711_GhostInTheCell.cs" />
     <Content Include="Puzzles\07_StockLosses.cs" />
     <Content Include="Puzzles\17_StockLosses.cs" />
+    <Content Include="Challenges\201801_TheGreatDispatch.cs" />
+    <Content Include="Challenges\201801_PlatinumRift.cs" />
   </ItemGroup>
 </Project>
