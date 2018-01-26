@@ -7,6 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Framework;
 
+//Made the stuff work, but not anywhere near a perfect solution, but filling trucks is fun ;)
+
 //https://www.codingame.com/ide/puzzle/the-great-dispatch
 namespace Challenges.TheGreatDispatch
 {
