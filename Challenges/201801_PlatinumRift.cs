@@ -1,5 +1,6 @@
 
 //require: Node.cs
+//require: NodeRoute.cs
 using System;
 using System.Linq;
 using System.IO;
@@ -28,6 +29,7 @@ namespace Challenges.PlatinumRift
 			.Replace("\t","");
 		}	
 
+		private List<RiftZone> _zonesList = new List<RiftZone>();
 		public Dictionary<int,RiftZone> Zones {get;set;} = new Dictionary<int, RiftZone>();
 		public void AddOrReplaceZone(RiftZone zone)
 		{
@@ -39,12 +41,23 @@ namespace Challenges.PlatinumRift
 			{
 				Zones.Add(zone.NodeIndex, zone);
 			}
+			_zonesList.Add(zone);
 		}
 
 		public RiftZone GetZone(int zoneId)
 		{
 			if(!Zones.Keys.Contains(zoneId)) { throw new Exception($"No zone with id: {zoneId}"); }
 			return Zones[zoneId];
+		}
+
+		public IEnumerable<RiftZone> GetZonesWithMyPods()
+		{
+			return _zonesList.Where(z => z.GetAmountPodsForPlayer(MyPlayerID) > 0);
+		}
+
+		public IEnumerable<RiftZone> GetZonesUnderMyControl()
+		{
+			return _zonesList.Where(z => z.OwningPlayerID == this.MyPlayerID);
 		}
 
 		public List<RiftZoneLink> ZoneLinks {get;set;} = new List<RiftZoneLink>();
@@ -80,6 +93,8 @@ namespace Challenges.PlatinumRift
 				default: throw new Exception($"Unknown playerID {playerID}");
 			}
 		}
+
+		
 	}
 
 	public class RiftZoneLink : NodeRoute<RiftZone>
@@ -110,7 +125,7 @@ namespace Challenges.PlatinumRift
 				Log("Game tick ");
 				UpdateGameState(gameState);
 				Log(gameState);
-
+				LogRepresentation(gameState);
 				// first line for movement commands, second line for POD purchase (see the protocol in the statement for details)
 				//TODO: split generate string and generate commands to different calls
 				WriteLine(GenerateMovementString(gameState));
@@ -121,14 +136,42 @@ namespace Challenges.PlatinumRift
 
 		private string GenerateMovementString(RiftGame game)
 		{
+			/*Rules for moving:
+				A POD (or group of PODs) can only make one move per game round.
+				A POD can only move from one zone to a contiguous zone – either neutral, already owned or owned by an enemy.
+				A POD located on a zone where a fight is ongoing – meaning a zone with enemy PODs on it – can only move to a neutral zone or a zone he/she owns. Simply put, a POD that flees a fight can only retreat on a zone which does not belong to an enemy. 
+			*/
+
+			
+			/*
+			Line 1: a series of movement commands. A movement command is composed of 3 integers podsCount zoneOrigin zoneDestination that indicate the number of PODs to move from one zone to another.
+			For example 4 2 1 3 2 6 = two commands: moving four PODs from zone 2 to zone 1 and moving three PODs from zone 2 to 6.
+			Just write WAIT if you do not wish to make any movements.
+			*/
 			return "WAIT";
 		}
 
 		private string GeneratePurchaseString(RiftGame game)
 		{
+			/* Rules for buying:
+				Each player can buy as many troops as their Platinum stock allows. A war POD costs 20 Platinum bars.
+				A freshly bought POD can only be placed on a neutral zone or on a zone owned by the buyer. 
+			*/
+
+			/*
+			Line 2: a series of purchase commands. A purchase command is composed of 2 integers podsCount zoneDestination that indicate the number of PODs to add to a zone.
+			For example 2 32 1 11 = two commands: buy two PODs for zone 32 and buy one POD for zone 11.
+			Just write WAIT if you do not want to buy anything. 
+			*/
 			return "1 73";
 		}
 
+		public void LogRepresentation(RiftGame game)
+		{
+			var podNodes = game.GetZonesWithMyPods().ToList();
+			var controlNodes = game.GetZonesUnderMyControl().ToList();
+			Log($"Current statistics: {podNodes.Count} with myNodes, {controlNodes} under control");
+		}
 
 		// **** Status readers
 
