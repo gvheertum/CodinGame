@@ -68,6 +68,7 @@ namespace Challenges.PlatinumRift
 		public List<RiftZoneLink> ZoneLinks {get;set;} = new List<RiftZoneLink>();
 	}
 
+	//TODO: We could have a better handling of my player ID
 	public class RiftZone : Node<RiftZone>
 	{
 		public int PlatimumSource {get;set;}
@@ -82,6 +83,18 @@ namespace Challenges.PlatinumRift
 			int runnerUp = GetPodAmounts().OrderByDescending(i => i).Skip(1).First();
 			int movable = GetAmountPodsForPlayer(myPlayerID) - runnerUp;
 			return movable > 0 ? movable : (int?)null;
+		}
+
+		public void AddPodsForPlayer(int playerID, int pods)
+		{
+			switch(playerID)
+			{
+				case 0: AmountPodsPlayer0 += pods; break;
+				case 1: AmountPodsPlayer1 += pods; break;
+				case 2: AmountPodsPlayer2 += pods; break;
+				case 3: AmountPodsPlayer3 += pods; break;
+				default: throw new Exception($"Unknown playerID {playerID}");
+			}	
 		}
 
 		public IEnumerable<int> GetPodAmounts()
@@ -265,22 +278,28 @@ namespace Challenges.PlatinumRift
 			Log($"Platimum to buy {amountAvailable} pods");
 			
 			//Populate neutral zones
-			var neutralZones = game.GetAllZones().Where(z => z.OwningPlayerID == null);
+			var neutralZones = GetNeutralZonesForMoves(game).ToList();
 			Log($"Found {neutralZones.Count()} neutralzones");
-			foreach(var neutralZone in neutralZones)
+			//While we can get nodes that are neutral
+			while(amountAvailable > 0 && neutralZones.Any())
 			{
-				if(amountAvailable < 0) { break; }
-			amountAvailable--;
+				//Pick a random node, because otherwise we will start populating in the left top
+				var neutralZone = GetRandomFromCollection(neutralZones);
+				amountAvailable--;
 				yield return new PodPurchase()
 				{
 					Amount = 1,
 					Zone = neutralZone.NodeIndex
 				};
+				neutralZone.AddPodsForPlayer(game.MyPlayerID, 1); //Update the temporary count
+				
+				//Check if there are still zones
+				neutralZones = GetNeutralZonesForMoves(game).ToList();
 			}
 
-			if(amountAvailable > 0) { Log("Still platinum available to purchase!"); }
+			if(amountAvailable > 0) { Log("Still platinum available after populating empty nodes to purchase!"); }
 
-			//Check if we need to strengthen our outer defenses
+			//Check if we need to strengthen our outer defenses (zones that are mine, but are next to empty or enemy nodes)
 			var zonesToStrengthen = game.GetZonesUnderMyControl().Where(z => z.LinkedNodes.Any(l => l.OwningPlayerID != game.MyPlayerID));
 			Log($"Found {zonesToStrengthen.Count()} zones to strengthen");
 			foreach(var zoneToStrengthen in zonesToStrengthen)
@@ -292,14 +311,29 @@ namespace Challenges.PlatinumRift
 					Amount = 1,
 					Zone = zoneToStrengthen.NodeIndex
 				};
+				zoneToStrengthen.AddPodsForPlayer(game.MyPlayerID, 1); //Update the temporary count
 			}
 		}
 
-		public void LogRepresentation(RiftGame game)
+		private RiftZone GetRandomFromCollection(List<RiftZone> zones)
+		{
+			if(zones.Count == 0) { return null; }
+			int elementIdx = new Random().Next(0, zones.Count -1);
+			return zones[elementIdx];
+		}
+
+		private IEnumerable<RiftZone> GetNeutralZonesForMoves(RiftGame game)
+		{
+			//Get elements that are neutral and not yet have nodes of me (this can happen if the nodes were set by the randomize function, 
+			//this will not de-queue them from the default list, since ownership transfers after the tick)
+			return game.GetAllZones().Where(z => z.OwningPlayerID == null && z.GetAmountPodsForPlayer(game.MyPlayerID) <= 0);
+		}
+
+		private void LogRepresentation(RiftGame game)
 		{
 			var podNodes = game.GetZonesWithMyPods().ToList();
 			var controlNodes = game.GetZonesUnderMyControl().ToList();
-			Log($"Current statistics: {podNodes.Count} with myNodes, {controlNodes} under control");
+			Log($"Current statistics: {podNodes.Count} with myNodes, {controlNodes.Count} under control");
 		}
 
 
