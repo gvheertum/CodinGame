@@ -261,19 +261,36 @@ namespace Challenges.PlatinumRift
 
 		private IEnumerable<PodPurchase> GetPurchases(RiftGame game, int maxAmount)
 		{
-			//TODO: try to expand my node zones (with nodes but not under control)
-			//TODO: skip nodes that are not neutral
-			//TODO: strengthen our own nodes
-			int amountToPurchase = 5;
-			//TODO: purchse only a set of elements
-			var zonesNotMine = game.GetAllZones().Where(z => z.OwningPlayerID == null);
-			if(maxAmount > 0 && zonesNotMine.Any())
+			int amountAvailable = maxAmount;
+			Log($"Platimum to buy {amountAvailable} pods");
+			
+			//Populate neutral zones
+			var neutralZones = game.GetAllZones().Where(z => z.OwningPlayerID == null);
+			Log($"Found {neutralZones.Count()} neutralzones");
+			foreach(var neutralZone in neutralZones)
 			{
-				var zoneToTake = zonesNotMine.First();
+				if(amountAvailable < 0) { break; }
+			amountAvailable--;
 				yield return new PodPurchase()
 				{
-					Amount = maxAmount,
-					Zone = zoneToTake.NodeIndex
+					Amount = 1,
+					Zone = neutralZone.NodeIndex
+				};
+			}
+
+			if(amountAvailable > 0) { Log("Still platinum available to purchase!"); }
+
+			//Check if we need to strengthen our outer defenses
+			var zonesToStrengthen = game.GetZonesUnderMyControl().Where(z => z.LinkedNodes.Any(l => l.OwningPlayerID != game.MyPlayerID));
+			Log($"Found {zonesToStrengthen.Count()} zones to strengthen");
+			foreach(var zoneToStrengthen in zonesToStrengthen)
+			{
+				if(amountAvailable <= 0) { break; }
+				amountAvailable--;
+				yield return new PodPurchase()
+				{
+					Amount = 1,
+					Zone = zoneToStrengthen.NodeIndex
 				};
 			}
 		}
