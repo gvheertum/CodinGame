@@ -55,6 +55,11 @@ namespace Challenges.PlatinumRift
 			return _zonesList.Where(z => z.GetAmountPodsForPlayer(MyPlayerID) > 0);
 		}
 
+		public IEnumerable<RiftZone> GetAllZones()
+		{
+			return _zonesList.Select(z => z);
+		}
+
 		public IEnumerable<RiftZone> GetZonesUnderMyControl()
 		{
 			return _zonesList.Where(z => z.OwningPlayerID == this.MyPlayerID);
@@ -71,6 +76,22 @@ namespace Challenges.PlatinumRift
 		public int AmountPodsPlayer1 {get;set;}
 		public int AmountPodsPlayer2 {get;set;}
 		public int AmountPodsPlayer3 {get;set;}
+		public int? GetAmountMovable(int myPlayerID)
+		{
+			if(OwningPlayerID != myPlayerID) { return null; }
+			int runnerUp = GetPodAmounts().OrderByDescending(i => i).Skip(1).First();
+			int movable = GetAmountPodsForPlayer(myPlayerID) - runnerUp;
+			return movable > 0 ? movable : (int?)null;
+		}
+
+		public IEnumerable<int> GetPodAmounts()
+		{
+			yield return AmountPodsPlayer0;
+			yield return AmountPodsPlayer1;
+			yield return AmountPodsPlayer2;
+			yield return AmountPodsPlayer3;
+		}
+
 		public int GetAmountPodsForPlayer(int playerID)
 		{
 			switch(playerID)
@@ -100,6 +121,36 @@ namespace Challenges.PlatinumRift
 	public class RiftZoneLink : NodeRoute<RiftZone>
 	{
 
+	}
+
+	public class PodMovement
+	{
+		public int Amount {get;set;}
+		public int ZoneOrigin {get;set;}
+		public int ZoneDestination {get;set;}
+		public string GetOutputString()
+		{
+			return $"{Amount} {ZoneOrigin} {ZoneDestination}";
+		}
+		public override string ToString()
+		{
+			return $"[Movement] {Amount} {ZoneOrigin}->{ZoneDestination}";
+		}
+	}
+
+	public class PodPurchase
+	{
+		public int Zone {get;set;}
+		public int Amount {get;set;}
+		public string GetOutputString()
+		{
+			return $"{Amount} {Zone}";
+			
+		}
+		public override string ToString()
+		{
+			return $"[Purchase] {Amount} @ z{Zone}";
+		}
 	}
 
 	public class PlatinumRiftPlayer : PuzzleMain
@@ -134,6 +185,9 @@ namespace Challenges.PlatinumRift
 
 		}
 
+
+		
+
 		private string GenerateMovementString(RiftGame game)
 		{
 			/*Rules for moving:
@@ -148,8 +202,41 @@ namespace Challenges.PlatinumRift
 			For example 4 2 1 3 2 6 = two commands: moving four PODs from zone 2 to zone 1 and moving three PODs from zone 2 to 6.
 			Just write WAIT if you do not wish to make any movements.
 			*/
-			return "WAIT";
+			int maxPodToPurchase = game.MyPlatinum / 20;
+			var movements = GetMovements(game).ToList();
+			if(!movements.Any()) { Log("No movements"); return "WAIT"; }
+
+			Log($"Found {movements.Count()} movements");
+			movements.ForEach(m => Log(m));
+			return string.Join(" ", movements.Select(p=>p.GetOutputString()));
 		}
+
+		private IEnumerable<PodMovement> GetMovements(RiftGame game)
+		{
+			var controlledZones = game.GetZonesUnderMyControl();
+			foreach(var z in controlledZones)
+			{
+				var movableInZone = z.GetAmountMovable(game.MyPlayerID);
+				Log($"Can move {movableInZone} from zone {z.NodeIndex}");
+				if(!(movableInZone > 0)) { continue; }
+				
+				//Find the node to move to
+				var moveTo = z.LinkedNodes.FirstOrDefault(zz => zz.OwningPlayerID != game.MyPlayerID)
+					?? z.LinkedNodes.FirstOrDefault();
+				if(moveTo != null)
+				{
+					Log($"Moving {movableInZone} to {moveTo.NodeIndex}");
+					yield return new PodMovement()
+					{
+						Amount = movableInZone.Value,
+						ZoneOrigin = z.NodeIndex,
+						ZoneDestination = moveTo.NodeIndex
+					};
+				}
+			}
+		}
+
+		private const int PodCost = 20;
 
 		private string GeneratePurchaseString(RiftGame game)
 		{
@@ -163,7 +250,32 @@ namespace Challenges.PlatinumRift
 			For example 2 32 1 11 = two commands: buy two PODs for zone 32 and buy one POD for zone 11.
 			Just write WAIT if you do not want to buy anything. 
 			*/
-			return "1 73";
+			int maxPodToPurchase = game.MyPlatinum / 20;
+			var purchases = GetPurchases(game, maxPodToPurchase).ToList();
+			if(!purchases.Any()) { return "WAIT"; }
+
+			Log($"Found {purchases.Count()} purchases");
+			purchases.ForEach(p => Log(p));
+			return string.Join(" ", purchases.Select(p=>p.GetOutputString()));
+		}
+
+		private IEnumerable<PodPurchase> GetPurchases(RiftGame game, int maxAmount)
+		{
+			//TODO: try to expand my node zones (with nodes but not under control)
+			//TODO: skip nodes that are not neutral
+			//TODO: strengthen our own nodes
+			int amountToPurchase = 5;
+			//TODO: purchse only a set of elements
+			var zonesNotMine = game.GetAllZones().Where(z => z.OwningPlayerID == null);
+			if(maxAmount > 0 && zonesNotMine.Any())
+			{
+				var zoneToTake = zonesNotMine.First();
+				yield return new PodPurchase()
+				{
+					Amount = maxAmount,
+					Zone = zoneToTake.NodeIndex
+				};
+			}
 		}
 
 		public void LogRepresentation(RiftGame game)
@@ -172,6 +284,13 @@ namespace Challenges.PlatinumRift
 			var controlNodes = game.GetZonesUnderMyControl().ToList();
 			Log($"Current statistics: {podNodes.Count} with myNodes, {controlNodes} under control");
 		}
+
+
+
+
+
+
+
 
 		// **** Status readers
 
@@ -185,6 +304,7 @@ namespace Challenges.PlatinumRift
 			game.AmountOfZones = int.Parse(inputs[2]); // the amount of zones on the map
 			game.AmountOfZoneLinks = int.Parse(inputs[3]); // the amount of links between all zones
 			
+			//Read nodes
 			for (int i = 0; i < game.AmountOfZones; i++)
 			{
 				inputs = ReadLine().Split(' ');
@@ -196,12 +316,14 @@ namespace Challenges.PlatinumRift
 				game.AddOrReplaceZone(rz);
 			}
 
-			//TODO: Add routes
+			//Link nodes
 			for (int i = 0; i < game.AmountOfZoneLinks; i++)
 			{
 				inputs = ReadLine().Split(' ');
-				int zone1 = int.Parse(inputs[0]);
-				int zone2 = int.Parse(inputs[1]);
+				var z1 = game.GetZone(int.Parse(inputs[0]));
+				var z2 = game.GetZone(int.Parse(inputs[1]));
+				z1.LinkedNodes.Add(z2);
+				z2.LinkedNodes.Add(z1);
 			}
 
 			return game;
@@ -224,6 +346,7 @@ namespace Challenges.PlatinumRift
 				int? oldOwner = zone.OwningPlayerID;
 				
 				zone.OwningPlayerID = int.Parse(inputs[1]); // the player who owns this zone (-1 otherwise)
+				zone.OwningPlayerID = zone.OwningPlayerID < 0 ? null : zone.OwningPlayerID; //Keep null
 				zone.AmountPodsPlayer0 = int.Parse(inputs[2]); // player 0's PODs on this zone
 				zone.AmountPodsPlayer1 = int.Parse(inputs[3]); // player 1's PODs on this zone
 				zone.AmountPodsPlayer2 = int.Parse(inputs[4]); // player 2's PODs on this zone (always 0 for a two player game)
