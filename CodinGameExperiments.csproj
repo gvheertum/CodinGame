@@ -72,5 +72,7 @@
     <Content Include="Puzzles\17_StockLosses.cs" />
     <Content Include="Challenges\201801_TheGreatDispatch.cs" />
     <Content Include="Challenges\201801_PlatinumRift.cs" />
+    <Content Include="Challenges\201802_CodingForLife.cs" />
+    <Content Include="Challenges\201802_CodeForLife.cs" />
   </ItemGroup>
 </Project>
