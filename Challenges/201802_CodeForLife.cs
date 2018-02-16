@@ -11,12 +11,14 @@ namespace Challenges.CodeForLife
 {
 	public class LifeConstants 
 	{
+		public const string ModuleSampler = "SAMPLES";
 		public const string ModuleDiagnostics = "DIAGNOSIS";
 		public const string ModuleMolecules = "MOLECULES";
 		public const string ModuleLaboratory = "LABORATORY";
 		public const int MaxNrOfMolecules = 10;
 		public const int MaxNrOfSamples = 3;
-		public const int SuggestedNrOfSamples = 1;
+		public const int SuggestedNrOfSamples = 2;
+		public const int SuggestedNrOfUndiagnosedSamples = 2;
 	}
 
 	
@@ -30,7 +32,10 @@ namespace Challenges.CodeForLife
 			base.Log($"[BOT: {o}]");
 		}
 
-		private List<LifeSample> _samplesWorkingOn = new List<LifeSample>();
+		//Recipe carried ready for working on with molecules
+		public List<LifeSample> SamplesWorkingOn {get;set;} = new List<LifeSample>();
+		//Items not yet analyzed, need to go to the analyzer
+		public List<LifeSample> SamplesAnalyzing {get;set;} = new List<LifeSample>();
 		
 		public List<LifeBotAction> Actions {get;set;} = new List<LifeBotAction>();
 		public LifeBotAction DetermineAction(GameState state)
@@ -43,60 +48,117 @@ namespace Challenges.CodeForLife
 		private LifeBotAction DetermineActionInternal(GameState state)
 		{		
 			Log("Beep boop, plotting action");
-			Log($"I have {_samplesWorkingOn.Count} samples working on and am currently at {Target}");
+			Log($"I have {SamplesWorkingOn.Count} samples (and {SamplesAnalyzing.Count} to be analyzed) working on and am currently at {Target}");
 			Log($"Molecules A:{StorageA} B:{StorageB} C:{StorageC} D:{StorageD} E:{StorageE}");
 			
-			LifeBotAction action = null;
-			//Do we need to get samples
-			if(_samplesWorkingOn?.Any() != true)
+			return 
+				GetDiagnoseActionIfApplicable(state) ??
+				GetDeliverForAnalysisIfApplicable(state) ??
+				GetAnalysisActionIfApplicable(state) ??
+				GetMoleculeRetrieveIfApplicable(state) ??
+				GetManufacturingRetrieveIfApplicable(state) ??
+				new LifeBotWaitAction() { Comment = "We cannot make any other move..."};
+		}
+
+		
+		private int _analyzingCount = 0;
+		private LifeBotAction GetDiagnoseActionIfApplicable(GameState state)
+		{
+			if(SamplesWorkingOn.Count > 0) { Log("No undiagnosed sampling, working on data"); return null; } //No analyze stuff needed
+			if(state.Samples.Any(s => s.Diagnosed && s.Claimable)) { Log("Stuff in cloud, so no diagnosis"); return null; }
+			
+			if(SamplesAnalyzing.Count < LifeConstants.SuggestedNrOfUndiagnosedSamples)
 			{
-				Log("No samples, need to get some");
-				action = GetMoveAction(LifeConstants.ModuleDiagnostics);
-				if (action!=null) { return action; }
+				var relocateAction = EnsureLocation(LifeConstants.ModuleSampler);
+				if(relocateAction != null) { return relocateAction; }
 				
-				Log($"At the diagnostic module, filling up to {LifeConstants.SuggestedNrOfSamples}");
-				if(_samplesWorkingOn?.Count < LifeConstants.SuggestedNrOfSamples)
-				{
-					var sampleToTake = DetermineSampleToWorkOn(state).FirstOrDefault();
-					//Take a sample
-					if(sampleToTake != null)
-					{
-						Log($"Sample found, getting sample {sampleToTake.SampleID}");
-						_samplesWorkingOn.Add(sampleToTake);
-						return new LifeBotTakeSampleAction() { SampleId = sampleToTake.SampleID };
-					}
-				}
+				Log("Retrieving new sample to analyze");
+				return new LifeBotTakeUndiagnosedAction() { Rank = 2};
+			}
+			Log("No actions needed for diagnosis");
+			return null;
+		}
+
+		private LifeBotAction GetDeliverForAnalysisIfApplicable(GameState state)
+		{
+			if(SamplesAnalyzing.Count <= 0) { Log("Not carrying stuff to analyze"); return null; }
+
+			var relocateAction = EnsureLocation(LifeConstants.ModuleDiagnostics);
+			if(relocateAction != null) { return relocateAction; }
+			
+			var itemToAnalyze = SamplesAnalyzing.First();
+			Log($"Putting item {itemToAnalyze.SampleID} for analysis");
+			return new LifeBotAnalyzeSampleAction() { SampleId = itemToAnalyze.SampleID };
+		}
+
+		private LifeBotAction GetAnalysisActionIfApplicable(GameState state)
+		{
+			if(SamplesWorkingOn.Count >= 1)  // LifeConstants.SuggestedNrOfSamples) 
+			{
+				Log("We have enough samples, so no need to gather more"); 
+				return null; 
+			}
+			
+			//Do we need to get samples
+			Log("Not enough samples, need to get some");
+			var action = EnsureLocation(LifeConstants.ModuleDiagnostics);
+			if (action!=null) { return action; }
+			
+			Log($"At the diagnostic module, filling up to {LifeConstants.SuggestedNrOfSamples}");
+			
+			var sampleToTake = DetermineSampleToWorkOn(state).FirstOrDefault();
+			//Take a sample
+			if(sampleToTake != null)
+			{
+				Log($"Sample found, getting sample {sampleToTake.SampleID}");
+				SamplesWorkingOn.Add(sampleToTake);
+				return new LifeBotTakeSampleAction() { SampleId = sampleToTake.SampleID };
+			}
+			
+
+			Log("No analysis retrieve for me");
+			return null;
+		}
+
+
+		private LifeBotAction GetMoleculeRetrieveIfApplicable(GameState state)
+		{
+			if(SamplesWorkingOn.Any(ResourceForSampleComplete))
+			{
+				Log("We can make a product, skip retrieval");
+				return null;
 			}
 
 			//Get molecules (for at least one sample)
-			if(!_samplesWorkingOn.Any(ResourceForSampleComplete))
-			{
-				Log("We have samples, but need molecules");
-				action = GetMoveAction(LifeConstants.ModuleMolecules);
-				if (action!=null) { return action; }
-
-				string moleculeToTake = DetermineMoleculeTake(_samplesWorkingOn.First(s => !ResourceForSampleComplete(s)), state);
-				if(moleculeToTake == null) { Log("Not able to take a molecule"); return new LifeBotWaitAction(); }
-				return new LifeBotTakeMoleculeAction() { Molecule = moleculeToTake };
-			}
-
-			//Make the sample
-			Log("We have everything ready to make make stuff");
-			action = GetMoveAction(LifeConstants.ModuleLaboratory);
+			Log("We have samples, but need molecules");
+			var action = EnsureLocation(LifeConstants.ModuleMolecules);
 			if (action!=null) { return action; }
 
-			var sampleToMake = _samplesWorkingOn.FirstOrDefault(ResourceForSampleComplete);
+			string moleculeToTake = DetermineMoleculeTake(SamplesWorkingOn.First(s => !ResourceForSampleComplete(s)), state);
+			if(moleculeToTake == null) { Log("Not able to take a molecule"); return null; }
+			return new LifeBotTakeMoleculeAction() { Molecule = moleculeToTake };
+		}
+
+		private LifeBotAction GetManufacturingRetrieveIfApplicable(GameState state)
+		{
+			//Make the sample
+			Log("We have everything ready to make make stuff");
+			var action = EnsureLocation(LifeConstants.ModuleLaboratory);
+			if (action!=null) { return action; }
+
+			var sampleToMake = SamplesWorkingOn.FirstOrDefault(ResourceForSampleComplete);
 			if(sampleToMake == null)
 			{
 				Log("We came to the make part, but we have no suitable sample...");
-				return new LifeBotWaitAction();
+				return null;
 			}
 			Log($"Making sample: {sampleToMake.SampleID}");
-			_samplesWorkingOn.Remove(sampleToMake); //Remove the sample from our list
+			SamplesWorkingOn.Remove(sampleToMake); //Remove the sample from our list
 			return new LifeBotMakeSampleAction() { SampleId = sampleToMake.SampleID };
 		}
-
-		private LifeBotGotoAction GetMoveAction(string destination)
+		
+		//Check if we are at a certain point, if not return a movement, otherwise return a null
+		private LifeBotGotoAction EnsureLocation(string destination)
 		{
 			if(Target == destination) { return null; }
 		
@@ -104,8 +166,6 @@ namespace Challenges.CodeForLife
 			Log($"We are not at {destination} (but at {Target}), moving out");
 			return new LifeBotGotoAction() { Destination = destination };
 		}
-
-
 
 		private List<LifeSample> DetermineSampleToWorkOn(GameState state)
 		{
@@ -145,7 +205,7 @@ namespace Challenges.CodeForLife
 
 		private int RankSample(LifeSample sample)
 		{
-			return sample.Health ;
+			return sample.Health * (sample.Rank + 1);
 		}
 	}
 
@@ -170,8 +230,6 @@ namespace Challenges.CodeForLife
 				Log("Run loop!");
 				gameState = UpdateGameState(gameState);
 				Log(gameState.LogStats());
-				// Write an action using Console.WriteLine()
-				// To debug: Console.Error.WriteLine("Debug messages...");
 				Log("Asking our bot for an action");
 				var botAction = gameState.MyLifeBot.DetermineAction(gameState);
 				Log($"Going for: {botAction.GetOutput()}");
@@ -218,6 +276,11 @@ namespace Challenges.CodeForLife
 			{
 				gameState.Samples.Add(ReadSample(ReadLine()));	
 			}
+
+			//Update samples held by my bot
+			gameState.MyLifeBot.SamplesWorkingOn = gameState.Samples.Where(s => s.Mine && s.Diagnosed).ToList();
+			gameState.MyLifeBot.SamplesAnalyzing = gameState.Samples.Where(s => s.Mine && !s.Diagnosed).ToList();
+
 			Log("Retrieved gamestate");
 			return gameState;
 		}
@@ -318,6 +381,7 @@ namespace Challenges.CodeForLife
 
 	public class LifeSample
 	{
+		public bool Mine { get {return CarriedBy == 0; } }
 		public int SampleID { get;set; }
 		public int CarriedBy { get;set; }
 		public int Rank { get;set; }
@@ -328,6 +392,9 @@ namespace Challenges.CodeForLife
 		public int CostC { get;set; }
 		public int CostD { get;set; }
 		public int CostE { get;set; }
+		public int TotalCost { get { return CostA + CostB + CostC + CostD + CostE; } }
+		public bool Diagnosed { get { return TotalCost > 0; } }
+		public bool Claimable { get { return CarriedBy == -1; } }
 	}
 
 	public class LifeProjectCollection
@@ -357,7 +424,8 @@ namespace Challenges.CodeForLife
 
 	public class LifeBotWaitAction : LifeBotAction
 	{
-		public override string GetOutput() { return "WAIT" ;}
+		public string Comment {get;set;}
+		public override string GetOutput() { return $"WAIT {Comment}" ;}
 	}
 
 	public class LifeBotGotoAction : LifeBotAction
@@ -366,12 +434,24 @@ namespace Challenges.CodeForLife
 		public override string GetOutput() { return "GOTO " + Destination; }
 	}
 
+	public class LifeBotAnalyzeSampleAction : LifeBotAction
+	{
+		public int SampleId {get;set;}
+		public override string GetOutput() { return "CONNECT " + SampleId; }
+	}
+
 	public class LifeBotTakeSampleAction : LifeBotAction
 	{
 		public int SampleId {get;set;}
 		public override string GetOutput() { return "CONNECT " + SampleId; }
 	}
 	
+	public class LifeBotTakeUndiagnosedAction : LifeBotAction
+	{
+		public int Rank {get;set;}
+		public override string GetOutput() { return "CONNECT " + Rank; }
+	}
+
 	public class LifeBotTakeMoleculeAction : LifeBotAction
 	{
 		public string Molecule {get;set;}
