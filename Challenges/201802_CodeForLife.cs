@@ -109,7 +109,7 @@ namespace Challenges.CodeForLife
 
 		private List<LifeSample> DetermineSampleToWorkOn(GameState state)
 		{
-			var makableSamples = state.Samples.Where(s=> SampleCanBeMadeWithWorldResources(s, state)).OrderBy(RankSample).ToList();
+			var makableSamples = state.Samples.Where(s=> SampleCanBeMadeWithWorldResources(s, state)).OrderByDescending(RankSample).ToList();
 			Log($"Found {makableSamples.Count} samples that can be made with the resources in the world");
 			return makableSamples;
 		}
