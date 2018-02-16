@@ -19,6 +19,9 @@ namespace Challenges.CodeForLife
 		public const int MaxNrOfSamples = 3;
 		public const int SuggestedNrOfSamples = 2;
 		public const int SuggestedNrOfUndiagnosedSamples = 2;
+
+		//Feature flag
+		public const bool EngineHasUndiagnosedElements = true;
 	}
 
 	
@@ -64,6 +67,7 @@ namespace Challenges.CodeForLife
 		private int _analyzingCount = 0;
 		private LifeBotAction GetDiagnoseActionIfApplicable(GameState state)
 		{
+			if(!LifeConstants.EngineHasUndiagnosedElements) { Log("Undiagnosed elements are not part of the engine now"); return null; }
 			if(SamplesWorkingOn.Count > 0) { Log("No undiagnosed sampling, working on data"); return null; } //No analyze stuff needed
 			if(state.Samples.Any(s => s.Diagnosed && s.Claimable)) { Log("Stuff in cloud, so no diagnosis"); return null; }
 			
@@ -81,6 +85,7 @@ namespace Challenges.CodeForLife
 
 		private LifeBotAction GetDeliverForAnalysisIfApplicable(GameState state)
 		{
+			if(!LifeConstants.EngineHasUndiagnosedElements) { Log("Undiagnosed elements are not part of the engine now"); return null; }
 			if(SamplesAnalyzing.Count <= 0) { Log("Not carrying stuff to analyze"); return null; }
 
 			var relocateAction = EnsureLocation(LifeConstants.ModuleDiagnostics);
