@@ -77,8 +77,21 @@ namespace Framework
 		{
 			if(!_runSilent) //If silent, no logging is performed
 			{
-				Console.Error.WriteLine(obj);
+				Console.Error.WriteLine(obj?.ToString().Replace("\t", " "));
 			}
 		}
+	}
+
+	public abstract class LogInjectableClass
+	{
+		private Action<object> _log;
+		public LogInjectableClass(Action<object> log)
+		{
+			_log = log;
+		}
+		protected virtual void Log(object o) 
+		{
+			if(_log != null) { _log($"[State: {o}]"); }
+		}	
 	}
 }
