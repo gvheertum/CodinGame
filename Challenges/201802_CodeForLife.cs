@@ -18,7 +18,7 @@ namespace Challenges.CodeForLife
 		public const int MaxNrOfMolecules = 10;
 		public const int MaxNrOfSamples = 3;
 		public const int SuggestedNrOfSamples = 2;
-		public const int SuggestedNrOfUndiagnosedSamples = 2;
+		public const int SuggestedNrOfUndiagnosedSamples = 3;
 
 		//Feature flag
 		public const bool EngineHasUndiagnosedElements = true;
@@ -53,7 +53,7 @@ namespace Challenges.CodeForLife
 			Log("Beep boop, plotting action");
 			Log($"I have {SamplesWorkingOn.Count} samples (and {SamplesAnalyzing.Count} to be analyzed) working on and am currently at {Target}");
 			Log($"Molecules A:{StorageA} B:{StorageB} C:{StorageC} D:{StorageD} E:{StorageE}");
-			
+			SamplesWorkingOn.ForEach(s => Log(s.GetSampleDisplayString()));
 			return 
 				GetDiagnoseActionIfApplicable(state) ??
 				GetDeliverForAnalysisIfApplicable(state) ??
@@ -134,6 +134,12 @@ namespace Challenges.CodeForLife
 				return null;
 			}
 
+			if(StorageTotal >= LifeConstants.MaxNrOfMolecules) 
+			{
+				Log("WARNING: Max number of molecules reached");
+				return null;
+			}
+
 			//Get molecules (for at least one sample)
 			Log("We have samples, but need molecules");
 			var action = EnsureLocation(LifeConstants.ModuleMolecules);
@@ -146,17 +152,18 @@ namespace Challenges.CodeForLife
 
 		private LifeBotAction GetManufacturingRetrieveIfApplicable(GameState state)
 		{
+			var sampleToMake = SamplesWorkingOn.FirstOrDefault(ResourceForSampleComplete);
+			if(sampleToMake == null)
+			{
+				Log("We want to the make part, but we have no suitable sample nor the molecules...");
+				return null;
+			}
+
 			//Make the sample
 			Log("We have everything ready to make make stuff");
 			var action = EnsureLocation(LifeConstants.ModuleLaboratory);
 			if (action!=null) { return action; }
-
-			var sampleToMake = SamplesWorkingOn.FirstOrDefault(ResourceForSampleComplete);
-			if(sampleToMake == null)
-			{
-				Log("We came to the make part, but we have no suitable sample...");
-				return null;
-			}
+			
 			Log($"Making sample: {sampleToMake.SampleID}");
 			SamplesWorkingOn.Remove(sampleToMake); //Remove the sample from our list
 			return new LifeBotMakeSampleAction() { SampleId = sampleToMake.SampleID };
@@ -182,29 +189,29 @@ namespace Challenges.CodeForLife
 		private bool SampleCanBeMadeWithWorldResources(LifeSample sample, GameState state)
 		{
 			return sample.CarriedBy == -1 && //In the cloud
-				sample.CostA <= state.AvailableA && 
-				sample.CostB <= state.AvailableB && 
-				sample.CostC <= state.AvailableC && 
-				sample.CostD <= state.AvailableD && 
-				sample.CostE <= state.AvailableE; //Should we mind the carried stuff from the other bot
+				sample.CostA <= state.AvailableA + ExpertiseA && 
+				sample.CostB <= state.AvailableB + ExpertiseB && 
+				sample.CostC <= state.AvailableC + ExpertiseC && 
+				sample.CostD <= state.AvailableD + ExpertiseD && 
+				sample.CostE <= state.AvailableE + ExpertiseE; //Should we mind the carried stuff from the other bot
 		}
 
 		private bool ResourceForSampleComplete(LifeSample sample)
 		{
-			return sample.CostA <= this.StorageA && 
-				sample.CostB <= this.StorageB && 
-				sample.CostC <= this.StorageC && 
-				sample.CostD <= this.StorageD && 
-				sample.CostE <= this.StorageE;
+			return sample.CostA <= this.ProjectedA && 
+				sample.CostB <= this.ProjectedB && 
+				sample.CostC <= this.ProjectedC && 
+				sample.CostD <= this.ProjectedD && 
+				sample.CostE <= this.ProjectedE;
 		}
 
 		private string DetermineMoleculeTake(LifeSample sample, GameState state)
 		{
-			if(sample.CostA > StorageA && state.AvailableA > 0) { return "A"; }
-			if(sample.CostB > StorageB && state.AvailableB > 0) { return "B"; }
-			if(sample.CostC > StorageC && state.AvailableC > 0) { return "C"; }
-			if(sample.CostD > StorageD && state.AvailableD > 0) { return "D"; }
-			if(sample.CostE > StorageE && state.AvailableE > 0) { return "E"; }
+			if(sample.CostA > ProjectedA && state.AvailableA > 0) { return "A"; }
+			if(sample.CostB > ProjectedB && state.AvailableB > 0) { return "B"; }
+			if(sample.CostC > ProjectedC && state.AvailableC > 0) { return "C"; }
+			if(sample.CostD > ProjectedD && state.AvailableD > 0) { return "D"; }
+			if(sample.CostE > ProjectedE && state.AvailableE > 0) { return "E"; }
 			return null;
 		}
 
@@ -371,17 +378,24 @@ namespace Challenges.CodeForLife
 
 		public string Target {get;set;}
 		public 	int ETA {get;set;}
-		public 	int Score {get;set;}
-		public 	int StorageA {get;set;}
-		public 	int StorageB {get;set;}
+		public int Score {get;set;}
+		public int StorageA {get;set;}
+		public int StorageB {get;set;}
 		public int StorageC {get;set;}
 		public int StorageD {get;set;}
 		public int StorageE {get;set;}
+		public int StorageTotal { get { return StorageA + StorageB + StorageC + StorageD + StorageE; } }
 		public int ExpertiseA {get;set;}
 		public int ExpertiseB {get;set;}
 		public int ExpertiseC {get;set;}
 		public int ExpertiseD {get;set;}
 		public int ExpertiseE {get;set;}
+		public int ProjectedA { get { return StorageA + ExpertiseA; } }
+		public int ProjectedB { get { return StorageB + ExpertiseB; } }
+		public int ProjectedC { get { return StorageC + ExpertiseC; } }
+		public int ProjectedD { get { return StorageD + ExpertiseD; } }
+		public int ProjectedE { get { return StorageE + ExpertiseE; } }
+		
 	}
 
 	public class LifeSample
@@ -400,6 +414,10 @@ namespace Challenges.CodeForLife
 		public int TotalCost { get { return CostA + CostB + CostC + CostD + CostE; } }
 		public bool Diagnosed { get { return TotalCost > 0; } }
 		public bool Claimable { get { return CarriedBy == -1; } }
+		public string GetSampleDisplayString() 
+		{
+			return $"[Sample:{SampleID} R:{Rank} H:{Health} => A:{CostA} B:{CostB} C:{CostC} D:{CostD} E:{CostE}]";
+		}
 	}
 
 	public class LifeProjectCollection
