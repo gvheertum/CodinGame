@@ -68,17 +68,18 @@ namespace Challenges.CodeForLife
 		private LifeBotAction GetDiagnoseActionIfApplicable(GameState state)
 		{
 			if(!LifeConstants.EngineHasUndiagnosedElements) { Log("Undiagnosed elements are not part of the engine now"); return null; }
-			if(SamplesWorkingOn.Count > 0) { Log("No undiagnosed sampling, working on data"); return null; } //No analyze stuff needed
-			if(state.Samples.Any(s => s.Diagnosed && s.Claimable)) { Log("Stuff in cloud, so no diagnosis"); return null; }
+			if(!_forceDiagnosis && SamplesWorkingOn.Count > 0) { Log("No undiagnosed sampling, working on data"); return null; } //No analyze stuff needed
+			if(!_forceDiagnosis && state.Samples.Any(s => s.Diagnosed && s.Claimable)) { Log("Stuff in cloud, so no diagnosis"); return null; }
 			
-			if(SamplesAnalyzing.Count < LifeConstants.SuggestedNrOfUndiagnosedSamples)
+			if(SamplesAnalyzing.Count < LifeConstants.SuggestedNrOfUndiagnosedSamples && SamplesAnalyzing.Count + SamplesWorkingOn.Count < LifeConstants.MaxNrOfSamples) //Check if we can still carry items and if we should (suggested and abs max)
 			{
 				var relocateAction = EnsureLocation(LifeConstants.ModuleSampler);
 				if(relocateAction != null) { return relocateAction; }
 				
 				Log("Retrieving new sample to analyze");
-				return new LifeBotTakeUndiagnosedAction() { Rank = 2};
+				return new LifeBotTakeUndiagnosedAction() { Rank = SamplesAnalyzing.Count == 2 ? 3 : 2 }; //Take 1 of each
 			}
+			_forceDiagnosis = false; //If this is hit we assume that the force flag is performed
 			Log("No actions needed for diagnosis");
 			return null;
 		}
@@ -125,7 +126,12 @@ namespace Challenges.CodeForLife
 			return null;
 		}
 
+		//TODO: Consider putting stuff in the cloud on forehand
+		//TODO: in some cases we cannot make medicine since the molecule count > 10, so we might not be able to even perform them
 
+		private int _moleculeMissCounter = 0;
+		private const int MoleculeMissMax = 3;
+		private bool _forceDiagnosis = false; 
 		private LifeBotAction GetMoleculeRetrieveIfApplicable(GameState state)
 		{
 			if(SamplesWorkingOn.Any(ResourceForSampleComplete))
@@ -140,13 +146,31 @@ namespace Challenges.CodeForLife
 				return null;
 			}
 
+			//Force a diagnosis tick to get new samples
+			if(_moleculeMissCounter >= MoleculeMissMax)
+			{
+				if(SamplesAnalyzing.Count + SamplesWorkingOn.Count < LifeConstants.MaxNrOfSamples)
+				{ 
+					Log("We missed to many molecules, try retrieving additional samples");
+					_forceDiagnosis = true; 
+				}
+				else
+				{
+					Log("We are missing molecule hits, but have the max amount of samples.. Uh oh");
+				}
+			}
+
 			//Get molecules (for at least one sample)
 			Log("We have samples, but need molecules");
 			var action = EnsureLocation(LifeConstants.ModuleMolecules);
 			if (action!=null) { return action; }
-
-			string moleculeToTake = DetermineMoleculeTake(SamplesWorkingOn.First(s => !ResourceForSampleComplete(s)), state);
-			if(moleculeToTake == null) { Log("Not able to take a molecule"); return null; }
+ 
+			//Get molecules for items we want to work on (and CAN work on)
+			var samplesStillNeedingItems = SamplesWorkingOn.Where(s => !ResourceForSampleComplete(s));
+			Log($"{samplesStillNeedingItems.Count()} samples still need molecules");
+			//Try polling ANY needed molecule
+			string moleculeToTake = samplesStillNeedingItems.Select(s => DetermineMoleculeTake(s,state)).FirstOrDefault(s => s != null);
+			if(moleculeToTake == null) { Log("Not able to take a molecule"); _moleculeMissCounter++; return null; }
 			return new LifeBotTakeMoleculeAction() { Molecule = moleculeToTake };
 		}
 
@@ -181,37 +205,41 @@ namespace Challenges.CodeForLife
 
 		private List<LifeSample> DetermineSampleToWorkOn(GameState state)
 		{
-			var makableSamples = state.Samples.Where(s=> SampleCanBeMadeWithWorldResources(s, state)).OrderByDescending(RankSample).ToList();
+			var makableSamples = state.Samples.Where(s=> s.CarriedBy == -1 && SampleCanBeMadeWithWorldResources(s, state)).OrderByDescending(RankSample).ToList();
 			Log($"Found {makableSamples.Count} samples that can be made with the resources in the world");
 			return makableSamples;
 		}
 
 		private bool SampleCanBeMadeWithWorldResources(LifeSample sample, GameState state)
 		{
-			return sample.CarriedBy == -1 && //In the cloud
-				sample.CostA <= state.AvailableA + ExpertiseA && 
+			bool canBeCreated = sample.CostA <= state.AvailableA + ExpertiseA && 
 				sample.CostB <= state.AvailableB + ExpertiseB && 
 				sample.CostC <= state.AvailableC + ExpertiseC && 
 				sample.CostD <= state.AvailableD + ExpertiseD && 
 				sample.CostE <= state.AvailableE + ExpertiseE; //Should we mind the carried stuff from the other bot
+			return canBeCreated;
 		}
 
 		private bool ResourceForSampleComplete(LifeSample sample)
 		{
-			return sample.CostA <= this.ProjectedA && 
+			bool sampleResourcesComplete = sample.CostA <= this.ProjectedA && 
 				sample.CostB <= this.ProjectedB && 
 				sample.CostC <= this.ProjectedC && 
 				sample.CostD <= this.ProjectedD && 
 				sample.CostE <= this.ProjectedE;
+			return sampleResourcesComplete;
 		}
 
 		private string DetermineMoleculeTake(LifeSample sample, GameState state)
 		{
+			if(sample == null) { Log("No sample deemed creatable with our molecules (we have non viable products in hand)"); return null; }
+			//TODO: We should prefer taking resources that are scarse
 			if(sample.CostA > ProjectedA && state.AvailableA > 0) { return "A"; }
 			if(sample.CostB > ProjectedB && state.AvailableB > 0) { return "B"; }
 			if(sample.CostC > ProjectedC && state.AvailableC > 0) { return "C"; }
 			if(sample.CostD > ProjectedD && state.AvailableD > 0) { return "D"; }
 			if(sample.CostE > ProjectedE && state.AvailableE > 0) { return "E"; }
+			Log($"For sample {sample.SampleID} we could not determine a molecule");
 			return null;
 		}
 
