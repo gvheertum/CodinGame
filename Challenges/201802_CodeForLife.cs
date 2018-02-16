@@ -137,16 +137,11 @@ namespace Challenges.CodeForLife
 			if(SamplesWorkingOn.Any(ResourceForSampleComplete))
 			{
 				Log("We can make a product, skip retrieval");
+				_moleculeMissCounter = 0;
 				return null;
 			}
 
-			if(StorageTotal >= LifeConstants.MaxNrOfMolecules) 
-			{
-				Log("WARNING: Max number of molecules reached");
-				return null;
-			}
-
-			//Force a diagnosis tick to get new samples
+			//Force a diagnosis tick to get new samples if too many missed
 			if(_moleculeMissCounter >= MoleculeMissMax)
 			{
 				if(SamplesAnalyzing.Count + SamplesWorkingOn.Count < LifeConstants.MaxNrOfSamples)
@@ -160,6 +155,13 @@ namespace Challenges.CodeForLife
 				}
 			}
 
+			if(StorageTotal >= LifeConstants.MaxNrOfMolecules) 
+			{
+				Log("WARNING: Max number of molecules reached");
+				_moleculeMissCounter++;
+				return null;
+			}
+
 			//Get molecules (for at least one sample)
 			Log("We have samples, but need molecules");
 			var action = EnsureLocation(LifeConstants.ModuleMolecules);
@@ -171,6 +173,7 @@ namespace Challenges.CodeForLife
 			//Try polling ANY needed molecule
 			string moleculeToTake = samplesStillNeedingItems.Select(s => DetermineMoleculeTake(s,state)).FirstOrDefault(s => s != null);
 			if(moleculeToTake == null) { Log("Not able to take a molecule"); _moleculeMissCounter++; return null; }
+			_moleculeMissCounter = 0; //Reset miss counter
 			return new LifeBotTakeMoleculeAction() { Molecule = moleculeToTake };
 		}
 
