@@ -196,7 +196,12 @@ namespace Helpers
 			if(files.Any())
 			{
 				LogInfo($"Reading {files.Count()} sibblings in {di.FullName}");
-				res.AddRange(files.SelectMany(f => System.IO.File.ReadAllLines(f.FullName)));
+				res.AddRange(files.SelectMany(f => 
+				{
+					var lines = new List<string>() { $"//File: Puzzlesub: {f.FullName}" };
+					lines.AddRange(System.IO.File.ReadAllLines(f.FullName));
+					return lines;
+				}));
 			}
 			return res;
 		}
