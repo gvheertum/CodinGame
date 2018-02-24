@@ -75,5 +75,7 @@
     <Content Include="Challenges\201802_CodingForLife.cs" />
     <Content Include="Challenges\201802_CodeForLife.cs" />
     <Content Include="Framework\LogInjectableClass.cs" />
+    <Content Include="Challenges\CodeForLife" />
+    <Content Include="Challenges\201802_CodeForLife\Game.cs" />
   </ItemGroup>
 </Project>

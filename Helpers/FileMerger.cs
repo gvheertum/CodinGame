@@ -66,15 +66,16 @@ namespace Helpers
 			GetCodeFilesInPath(_challengePath).ForEach(file => MergePuzzleFile(file, "challenge"));
 		}
 
-		private void MergePuzzleFile(string writeFile, string prefix)
+		private void MergePuzzleFile(CodeElement codeElement, string prefix)
 		{
-			
-			var fileToWriteInfo = new System.IO.FileInfo(writeFile);
-			LogInfo($"Merging file for: {fileToWriteInfo.Name}");
-			var outputFile = _sourcePath + "Merged/" + prefix + "." + fileToWriteInfo.Name + ".merged";
+			string fileNameToUse = codeElement.IsFile 
+				? new System.IO.FileInfo(codeElement.Location).Name 
+				: new System.IO.DirectoryInfo(codeElement.Location).Name;
+			LogInfo($"Merging file for: {fileNameToUse} (file: {codeElement.IsFile})");
+			var outputFile = _sourcePath + "Merged/" + prefix + "." + fileNameToUse + ".merged";
 			
 			var files = new List<ReadRes>();
-			var myFile = ReadFile(writeFile);
+			var myFile = ReadFile(codeElement);
 			files.Add(myFile);
 			
 			var fwFiles = GetFrameworkFiles();
@@ -135,6 +136,8 @@ namespace Helpers
 			while(true) { Thread.Sleep(1000); }
 		}
 
+
+		//TODO: Watch subfolders
 		public FileSystemWatcher WatchSpecificFolder(string folder, bool invokeAfterCreation)
 		{
 			var dirInfo = new System.IO.DirectoryInfo(folder);
@@ -173,14 +176,21 @@ namespace Helpers
 
 
 		//Read a single file and split the usings and the file from each other
-		private ReadRes ReadFile(string filePath) 
+		private ReadRes ReadFile(CodeElement element) 
 		{
-			if(!System.IO.File.Exists(filePath))
+			string firstFileToTake = element.IsFile ? element.Location : GetFirstReadFileForPuzzle(element.Location);
+			if(!System.IO.File.Exists(firstFileToTake))
 			{
-				throw new Exception($"Unknown file: {filePath}");
+				throw new Exception($"Unknown file: {firstFileToTake}");
 			}
-			var lines = System.IO.File.ReadAllLines(filePath);
-			var fileInfo = new System.IO.FileInfo(filePath);
+			var lines = System.IO.File.ReadAllLines(firstFileToTake);
+			if(!element.IsFile)	
+			{
+				LogInfo($"{element.Location} is a folder, iterating through child nodes");
+				lines = AppendSibblingFiles(lines, firstFileToTake).ToArray();
+			}
+
+			var fileInfo = new System.IO.FileInfo(firstFileToTake);
 			var fileName = fileInfo.Name;
 
 			var usingLines = new List<string>();
@@ -202,9 +212,11 @@ namespace Helpers
 				}
 			});
 
+		
+
 			return new ReadRes()
 			{
-				FullFileName = filePath,
+				FullFileName = element.Location,
 				FileName = fileName,
 				Lines = codeLines,
 				Usings = usingLines,
@@ -212,6 +224,51 @@ namespace Helpers
 			};
 		}
 		
+		//Determine the first file to read from a puzzle folder, this is identified by puzzle or game as filename
+		//or the first file containing static void Main
+		private string GetFirstReadFileForPuzzle(string folder)
+		{
+			LogInfo($"Getting puzzle file for {folder}");
+			var di = new System.IO.DirectoryInfo(folder);
+			var files = di.GetFiles();
+			var file = files.SingleOrDefault(f => 
+				string.Equals(f.Name, "Puzzle.cs", StringComparison.OrdinalIgnoreCase)
+				|| string.Equals(f.Name, "Game.cs", StringComparison.OrdinalIgnoreCase)
+			);
+
+			if (file!=null) 
+			{ 
+				LogInfo($"Candidate: {file.FullName} (for name match)");
+				return file.FullName; 
+			}
+
+			foreach(var fTemp in files)
+			{
+				var lines = System.IO.File.ReadAllText(fTemp.FullName);
+				if(lines.IndexOf("static void Main(") > -1) 
+				{ 
+					LogInfo($"Candidate: {file.FullName} (for having static void Main)");
+					return fTemp.FullName; 
+				}
+			}
+			throw new Exception("No puzzle main could be identified");
+		}
+
+		//When reading a folder, we take a primary file and need to read the sibbling files to ensure all items are included
+		private List<string> AppendSibblingFiles(IEnumerable<string> originalLines, string fileLocation)
+		{
+			var res = new List<string>(originalLines);
+			var di = new FileInfo(fileLocation).Directory;
+			//Exclude the already read file
+			var files = di.GetFiles().Where(f => f.FullName != fileLocation);
+			if(files.Any())
+			{
+				LogInfo($"Reading {files.Count()} sibblings in {di.FullName}");
+				res.AddRange(files.SelectMany(f => System.IO.File.ReadAllLines(f.FullName)));
+			}
+			return res;
+		}
+
 		//Get the sources path based on the run path of the app (often bin/Debug).
 		//TODO: This assumes /bin/Debug and therefor a Mac/Linux environment for windows go find the \bin\Debug
 		private string GetSourcePathBasedOnRunPath(string runPath)
@@ -221,11 +278,23 @@ namespace Helpers
 			return determinedBase.EndsWith("/") ? determinedBase : determinedBase + "/";
 		}
 
-		private List<string> GetCodeFilesInPath(string path)
+		private class CodeElement
+		{
+			public bool IsFile {get;set;}
+			public string Location {get;set;}
+		}
+
+		private List<CodeElement> GetCodeFilesInPath(string path)
 		{
 			var files = System.IO.Directory.GetFiles(path);
-			return files.Where(f => f.EndsWith(".cs")).ToList();
+			var folders = System.IO.Directory.GetDirectories(path);
+			List<CodeElement> elements = new List<CodeElement>();
+			elements.AddRange(files.Where(f => f.EndsWith(".cs")).Select(f => new CodeElement() { IsFile = true, Location = f }).ToList());
+			elements.AddRange(folders.Select(f => new CodeElement() { IsFile = false, Location = f }).ToList());
+			return elements;
 		}
+
+
 
 		private void LogInfo(string message)
 		{
