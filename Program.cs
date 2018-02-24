@@ -87,7 +87,7 @@ namespace CodinGameExperiments
 
 		private static void RunWatch()
 		{
-			var merger = GetFileMerger();
+			var merger = GetFileMergeWatcher();
 			System.Console.WriteLine($"Starting puzzle file watcher");
 			merger.WatchFolders();
 		}
@@ -95,6 +95,11 @@ namespace CodinGameExperiments
 		private static FileMerger GetFileMerger() 
 		{
 			return new FileMerger(AppContext.BaseDirectory, PuzzlePath, ChallengePath, SharedPath, FrameworkPath, MergePath);
+		}
+
+		private static FileMergeWatcher GetFileMergeWatcher()
+		{
+			return new FileMergeWatcher(AppContext.BaseDirectory, PuzzlePath, ChallengePath, SharedPath, FrameworkPath, MergePath);
 		}
 
 		//TODO: Createa logic to run multiple testcases and process the results
