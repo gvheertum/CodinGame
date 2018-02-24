@@ -79,5 +79,12 @@
     <Content Include="Challenges\201802_CodeForLife\Game.cs" />
     <Content Include="Helpers\FileMergerBase.cs" />
     <Content Include="Helpers\FileMergeWatcher.cs" />
+    <Content Include="Challenges\201802_CodeForLife\LifeProject.cs" />
+    <Content Include="Challenges\201802_CodeForLife\LifeBotAction.cs" />
+    <Content Include="Challenges\201802_CodeForLife\LifeBot.cs" />
+    <Content Include="Challenges\201802_CodeForLife\GameState.cs" />
+    <Content Include="Challenges\201802_CodeForLife\ControllableLifeBot.cs" />
+    <Content Include="Challenges\201802_CodeForLife\LifeSample.cs" />
+    <Content Include="Challenges\201802_CodeForLife\LifeConstants.cs" />
   </ItemGroup>
 </Project>
