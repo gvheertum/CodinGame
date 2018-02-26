@@ -14,7 +14,7 @@ namespace Helpers
 		protected FileMergerBase(string sourcePath, string puzzlePath, string challengePath, string sharedPath, string frameworkPath, string outputPath)
 		{
 			_sourcePath = sourcePath;
-			_dirSplit = _sourcePath.IndexOf("\\") > -1 ? "\\" : "//"; //Determine split char
+			_dirSplit = _sourcePath.IndexOf("\\") > -1 ? "\\" : "/"; //Determine split char
 			_sourcePath = FixPathForOSSeperator(sourcePath);
 			
 			if (string.IsNullOrWhiteSpace(puzzlePath) || string.IsNullOrWhiteSpace(sharedPath) || string.IsNullOrWhiteSpace(outputPath))
