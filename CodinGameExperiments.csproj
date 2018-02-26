@@ -33,7 +33,6 @@
     <Content Include="ProgramRunners\SpoonRunner.cs" />
     <Content Include="Puzzles\12_Horses.cs" />
     <Content Include="Puzzles\13_ Defibrillators.cs" />
-    <Content Include="Helpers\PuzzleTest.cs" />
     <Content Include="Helpers\TestRunner\PuzzleTest.cs" />
     <Content Include="Helpers\TestRunner\PuzzleTestCase.cs" />
     <Content Include="Helpers\TestRunner\PuzzleTestCaseResult.cs" />
@@ -72,10 +71,7 @@
     <Content Include="Puzzles\17_StockLosses.cs" />
     <Content Include="Challenges\201801_TheGreatDispatch.cs" />
     <Content Include="Challenges\201801_PlatinumRift.cs" />
-    <Content Include="Challenges\201802_CodingForLife.cs" />
-    <Content Include="Challenges\201802_CodeForLife.cs" />
     <Content Include="Framework\LogInjectableClass.cs" />
-    <Content Include="Challenges\CodeForLife" />
     <Content Include="Challenges\201802_CodeForLife\Game.cs" />
     <Content Include="Helpers\FileMergerBase.cs" />
     <Content Include="Helpers\FileMergeWatcher.cs" />

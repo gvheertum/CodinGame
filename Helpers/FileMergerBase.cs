@@ -10,24 +10,30 @@ namespace Helpers
 		protected string _sharedPath; //Path to the shared files
 		protected string _frameworkPath; //Path to the framework files
 		protected string _outputPath; //Where to push results to
+		protected string _dirSplit = null;
 		protected FileMergerBase(string sourcePath, string puzzlePath, string challengePath, string sharedPath, string frameworkPath, string outputPath)
 		{
-			_sourcePath = GetSourcePathBasedOnRunPath(sourcePath);
-			if(string.IsNullOrWhiteSpace(puzzlePath) || string.IsNullOrWhiteSpace(sharedPath) || string.IsNullOrWhiteSpace(outputPath))
+			_sourcePath = sourcePath;
+			_dirSplit = _sourcePath.IndexOf("\\") > -1 ? "\\" : "//"; //Determine split char
+			_sourcePath = FixPathForOSSeperator(sourcePath);
+			
+			if (string.IsNullOrWhiteSpace(puzzlePath) || string.IsNullOrWhiteSpace(sharedPath) || string.IsNullOrWhiteSpace(outputPath))
 			{
 				throw new Exception("Invalid data");
 			}
-			_puzzlePath = _sourcePath + puzzlePath;
-			_challengePath = _sourcePath + challengePath;
-			_sharedPath = _sourcePath + sharedPath;
-			_outputPath = _sourcePath + outputPath;
-			_frameworkPath = _sourcePath + frameworkPath;
+
+			_puzzlePath = FixPathForOSSeperator(_sourcePath + puzzlePath);
+			_challengePath = FixPathForOSSeperator(_sourcePath + challengePath);
+			_sharedPath = FixPathForOSSeperator(_sourcePath + sharedPath);
+			_outputPath = FixPathForOSSeperator(_sourcePath + outputPath);
+			_frameworkPath = FixPathForOSSeperator(_sourcePath + frameworkPath);
 			if(!System.IO.Directory.Exists(_sourcePath)) { throw new Exception($"Working from: {_sourcePath}"); }
-			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Puzzle path invalid: {puzzlePath}"); }
-			if(!System.IO.Directory.Exists(_challengePath)) { throw new Exception($"Challenge path invalid: {challengePath}"); }
-			if(!System.IO.Directory.Exists(_sharedPath)) { throw new Exception($"Shared path invalid: {sharedPath}"); }
-			if(!System.IO.Directory.Exists(_frameworkPath)) { throw new Exception($"Framework path invalid: {frameworkPath}"); }
-			if(!System.IO.Directory.Exists(_outputPath)) { throw new Exception($"Merge path invalid: {outputPath}"); }
+			if(!System.IO.Directory.Exists(_puzzlePath)) { throw new Exception($"Puzzle path invalid: {_puzzlePath}"); }
+			if(!System.IO.Directory.Exists(_challengePath)) { throw new Exception($"Challenge path invalid: {_challengePath}"); }
+			if(!System.IO.Directory.Exists(_sharedPath)) { throw new Exception($"Shared path invalid: {_sharedPath}"); }
+			if(!System.IO.Directory.Exists(_frameworkPath)) { throw new Exception($"Framework path invalid: {_frameworkPath}"); }
+			if (!System.IO.Directory.Exists(_outputPath)) { System.IO.Directory.CreateDirectory(_outputPath); } //Try to create the output path
+			if (!System.IO.Directory.Exists(_outputPath)) { throw new Exception($"Merge path invalid: {_outputPath}"); }
 
 			LogDefault($"Merger started with parameters:");
 			LogDefault($"Running path: {_sourcePath}");
@@ -38,13 +44,9 @@ namespace Helpers
 			LogDefault($"Output path: {outputPath}");
 		}
 
-		//Get the sources path based on the run path of the app (often bin/Debug).
-		//TODO: This assumes /bin/Debug and therefor a Mac/Linux environment for windows go find the \bin\Debug
-		private string GetSourcePathBasedOnRunPath(string runPath)
+		protected string FixPathForOSSeperator(string rawPath)
 		{
-			if(runPath.IndexOf("/bin/Debug/", StringComparison.OrdinalIgnoreCase) < 0) { return runPath; }
-			var determinedBase = runPath.Substring(0, runPath.IndexOf("/bin/Debug/"));
-			return determinedBase.EndsWith("/") ? determinedBase : determinedBase + "/";
+			return rawPath.Replace("/", _dirSplit);
 		}
 
 		protected void LogInfo(string message)

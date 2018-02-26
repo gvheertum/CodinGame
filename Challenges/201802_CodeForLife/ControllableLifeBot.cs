@@ -11,7 +11,7 @@ namespace Challenges.CodeForLife
 		protected override void Log(object o) 
 		{
 			base.Log($"[BOT: {o}]");
-		}
+		} 
 
 		//Recipe carried ready for working on with molecules
 		public List<LifeSample> SamplesWorkingOn {get;set;} = new List<LifeSample>();

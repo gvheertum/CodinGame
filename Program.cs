@@ -54,6 +54,7 @@ namespace CodinGameExperiments
 				System.Console.WriteLine($"{a.Name}\t\t{a.Description}");
 			});
 			System.Console.WriteLine("Parameters:");
+			System.Console.WriteLine($"Basepath \t\t {GetCleanRunPath(AppContext.BaseDirectory)}");
 			System.Console.WriteLine($"PuzzlePath \t\t {PuzzlePath}");
 			System.Console.WriteLine($"SharedPath\t\t {SharedPath}");
 			System.Console.WriteLine($"MergePath\t\t {MergePath}");
@@ -94,12 +95,30 @@ namespace CodinGameExperiments
 
 		private static FileMerger GetFileMerger() 
 		{
-			return new FileMerger(AppContext.BaseDirectory, PuzzlePath, ChallengePath, SharedPath, FrameworkPath, MergePath);
+			return new FileMerger(GetCleanRunPath(AppContext.BaseDirectory), PuzzlePath, ChallengePath, SharedPath, FrameworkPath, MergePath);
 		}
 
 		private static FileMergeWatcher GetFileMergeWatcher()
 		{
-			return new FileMergeWatcher(AppContext.BaseDirectory, PuzzlePath, ChallengePath, SharedPath, FrameworkPath, MergePath);
+			return new FileMergeWatcher(GetCleanRunPath(AppContext.BaseDirectory), PuzzlePath, ChallengePath, SharedPath, FrameworkPath, MergePath);
+		}
+
+		private static string GetCleanRunPath(string fullPath)
+		{
+			return fullPath.IndexOf("\\") > -1 ? GetCleanPathBackSlash(fullPath) : GetCleanPathForwardSlash(fullPath);		
+		}
+
+
+		private static string GetCleanPathBackSlash(string path)
+		{
+			int idx = path.IndexOf("bin\\debug", StringComparison.OrdinalIgnoreCase);
+			return idx > -1 ? path.Substring(0, idx) : path;		
+		}
+
+		private static string GetCleanPathForwardSlash(string path)
+		{
+			int idx = path.IndexOf("bin/debug", StringComparison.OrdinalIgnoreCase);
+			return idx > -1 ? path.Substring(0, idx) : path;
 		}
 
 		//TODO: Createa logic to run multiple testcases and process the results

@@ -39,7 +39,7 @@ namespace Helpers
 				? new System.IO.FileInfo(codeElement.Location).Name 
 				: new System.IO.DirectoryInfo(codeElement.Location).Name;
 			LogInfo($"Merging file for: {fileNameToUse} (file: {codeElement.IsFile})");
-			var outputFile = _sourcePath + "Merged/" + prefix + "." + fileNameToUse + ".merged";
+			var outputFile = _outputPath + prefix + "." + fileNameToUse + ".merged";
 			
 			var files = new List<ReadRes>();
 			var myFile = ReadFile(codeElement);
