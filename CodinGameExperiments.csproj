@@ -72,15 +72,13 @@
     <Content Include="Challenges\201801_TheGreatDispatch.cs" />
     <Content Include="Challenges\201801_PlatinumRift.cs" />
     <Content Include="Framework\LogInjectableClass.cs" />
-    <Content Include="Challenges\201802_CodeForLife\Game.cs" />
     <Content Include="Helpers\FileMergerBase.cs" />
     <Content Include="Helpers\FileMergeWatcher.cs" />
-    <Content Include="Challenges\201802_CodeForLife\LifeProject.cs" />
-    <Content Include="Challenges\201802_CodeForLife\LifeBotAction.cs" />
-    <Content Include="Challenges\201802_CodeForLife\LifeBot.cs" />
-    <Content Include="Challenges\201802_CodeForLife\GameState.cs" />
-    <Content Include="Challenges\201802_CodeForLife\ControllableLifeBot.cs" />
-    <Content Include="Challenges\201802_CodeForLife\LifeSample.cs" />
-    <Content Include="Challenges\201802_CodeForLife\LifeConstants.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\Game.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\GameState.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\Item.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\SpawnBush.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\Entity.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\GameReader.cs" />
   </ItemGroup>
 </Project>
