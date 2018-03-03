@@ -42,18 +42,21 @@ namespace Challenges.BottersOfTheGalaxy
 			return ponderedMove;
 		}
 
-		private const double CriticalHealth = 0.10;
+		private const double CriticalHealth = 300;
 		private GameMoveBase MoveDueToLowHealth(GameState gameState, Entity hero)
 		{
-			if((hero.Health / hero.MaxHealth) < CriticalHealth) 
+			Log($"health: {hero.Health}");
+			if(hero.Health < CriticalHealth) 
 			{ 
-				Log($"Our health is below {CriticalHealth*100}%, retreat");
+				Log($"Our health is below {CriticalHealth}, retreat");
 				var myTower = gameState.EntitiesMine.First(Helpers.Unit.IsTower);
 				if(hero.DistanceTo(myTower) > myTower.AttackRange) 
 				{
 					Log("Moving to our tower, it's a trap");
 					return new GameMoveMove() { X = myTower.X, Y = myTower.Y };
 				}
+				Log("It's dangerous to go alone! Take a nap");
+				return new GameMoveAttackClosest() { UnitType = BottersConstants.UnitTypes.Unit };
 			}
 			Log("All is well");
 			return null;

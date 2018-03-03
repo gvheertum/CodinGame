@@ -50,7 +50,12 @@ namespace Challenges.BottersOfTheGalaxy
 				//We need to flip items back!
 				foreach(var m in gameMoves)
 				{
-					if(gameState.FlippedBoard && m is IPosition) { (m as IPosition).Flip(); }
+					if(gameState.FlippedBoard && m is IPosition) 
+					{ 
+						Log("Do Flip:");
+						Log(m.GetMoveString());
+						(m as IPosition).Flip(); 
+					}
 					WriteLine(m.GetMoveString());
 				}
 			}

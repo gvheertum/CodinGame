@@ -84,5 +84,6 @@
     <Content Include="Challenges\201802_BottersOfTheGalaxy\BottersConstants.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAI.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\Helpers.cs" />
+    <Content Include="Challenges\201802_CodeForLife\ControllableLifeBot.cs" />
   </ItemGroup>
 </Project>
