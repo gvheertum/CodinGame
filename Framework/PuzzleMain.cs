@@ -7,6 +7,12 @@ using System.Collections.Generic;
 
 namespace Framework
 {
+	//TODO: Implement this as a temp-helper class to prevent using PuzzleMain as default inheritance path
+	public abstract class PuzzleHelper
+	{
+
+	}
+
 	//Shared base for the puzzles. This allows us to have a simpler working of the game objects with simplified shorthands.
 	// Reading: Console.ReadLine -> ReadLine
 	// Writing: Console.WriteLine -> WriteLine

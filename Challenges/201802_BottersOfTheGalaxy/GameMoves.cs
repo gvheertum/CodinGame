@@ -12,9 +12,39 @@ namespace Challenges.BottersOfTheGalaxy
 	public class GameMoveSpawnUnit : GameMoveBase
 	{
 		public string UnitName {get;set;}
+		public string Message {get;set;}
 		public override string GetMoveString()
 		{
 			return $"{UnitName}";
+		}
+	}
+
+	
+	public class GameMoveWait : GameMoveBase
+	{
+		public string Reason {get;set;}
+		public override string GetMoveString()
+		{
+			return $"WAIT; {Reason}";
+		}
+	}
+
+	public class GameMoveAttackClosest : GameMoveBase
+	{
+		public string UnitType{get;set;}
+		public override string GetMoveString()
+		{
+			return $"ATTACK_NEAREST {UnitType}";
+		}
+	}
+
+	public class GameMoveMove : GameMoveBase
+	{
+		public int X {get;set;}
+		public int Y {get;set;}
+		public override string GetMoveString()
+		{
+			return $"MOVE {X} {Y}";
 		}
 	}
 
@@ -27,12 +57,20 @@ namespace Challenges.BottersOfTheGalaxy
 		}
 	}
 
-	public class GameMoveWait : GameMoveBase
+	public class GameMoveMoveAttack : GameMoveBase
 	{
-		public string Reason {get;set;}
+		public int X {get;set;}
+		public int Y {get;set;}
+		public int UnitId {get;set;}
 		public override string GetMoveString()
 		{
-			return $"WAIT {Reason}";
+			return $"MOVE_ATTACK {X} {Y} {UnitId}";
 		}
 	}
 }
+
+/*
+
+BUY itemName
+SELL itemName
+ */

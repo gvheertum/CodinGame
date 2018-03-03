@@ -7,6 +7,8 @@ using System.Collections.Generic;
 
 namespace Helpers
 {
+	
+
 
 	//TODO: This could be made smarter to only include references really needed, this can be headers in the file indicating that we want to incude a certain base file
 	//TODO: Base files can include other required files
@@ -15,6 +17,19 @@ namespace Helpers
 	{
 		public FileMerger(string sourcePath, string puzzlePath, string challengePath, string sharedPath, string frameworkPath, string outputPath) : base(sourcePath, puzzlePath, challengePath, sharedPath, frameworkPath, outputPath)
 		{
+		}
+
+		public class FileResComparer : IEqualityComparer<ReadRes>
+		{
+			public bool Equals(ReadRes x, ReadRes y)
+			{
+				return string.Equals(x.FullFileName, y.FullFileName, StringComparison.OrdinalIgnoreCase);
+			}
+
+			public int GetHashCode(ReadRes obj)
+			{
+				return obj.FullFileName.ToLower().GetHashCode();
+			}
 		}
 
 		public class ReadRes
@@ -82,6 +97,7 @@ namespace Helpers
 			{ 
 				LogError($"X Include count for file incorrect, expected {puzzleFile.Requires.Count}, but found {sharedFilesToInclude.Count} shared");
 			}
+			sharedFilesToInclude = sharedFilesToInclude.Distinct(new FileResComparer()).ToList();
 			return sharedFilesToInclude;
 		}
 

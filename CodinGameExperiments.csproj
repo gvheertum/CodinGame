@@ -82,5 +82,7 @@
     <Content Include="Challenges\201802_BottersOfTheGalaxy\GameReader.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\GameMoves.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\BottersConstants.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAI.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\Helpers.cs" />
   </ItemGroup>
 </Project>

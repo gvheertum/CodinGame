@@ -5,13 +5,11 @@
 namespace Challenges.BottersOfTheGalaxy
 {
 
-	public class Entity
+	public class Entity : Shared.Position
 	{
 		public int UnitId {get;set;}
 		public int Team {get;set;}
 		public string UnitType {get;set;} // UNIT, HERO, TOWER, can also be GROOT from wood1
-		public int X {get;set;}
-		public int Y {get;set;}
 		public int AttackRange {get;set;}
 		public int Health {get;set;}
 		public int MaxHealth {get;set;}

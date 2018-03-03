@@ -1,3 +1,4 @@
+//require: Position.cs
 using System;
 using System.IO;
 using System.Text;
@@ -16,7 +17,8 @@ namespace Challenges.BottersOfTheGalaxy
 	public class Game : PuzzleMain
 	{
 		private GameReader _gameReader = null;
-		protected Game(IGameEngine gameEngine) : base(gameEngine) { _gameReader = new GameReader(gameEngine); }
+		private IGameEngine _gameEngine = null;
+		protected Game(IGameEngine gameEngine) : base(gameEngine) { _gameReader = new GameReader(gameEngine); _gameEngine = gameEngine; }
 
 		static void Main(string[] args)
 		{
@@ -59,9 +61,9 @@ namespace Challenges.BottersOfTheGalaxy
 
 			foreach(var hero in gameState.EntitiesMyHeros)
 			{
-				var hs = DetermineStepForHero(gameState, hero);
+				var heroAI = new HeroAI(_gameEngine, hero);
+				var hs = heroAI.GetHeroMove(gameState);
 				if(hs!=null) { yield return hs; moveTick--; }
-				
 			}
 
 			//Fill with moves
@@ -78,12 +80,6 @@ namespace Challenges.BottersOfTheGalaxy
 			int heroIdx = new Random().Next(0,availableHeroes.Count);
 			Log($"Picking heroIdx={heroIdx} => {availableHeroes[heroIdx]}");
 			return new GameMoveSpawnUnit() { UnitName = availableHeroes[heroIdx] };
-		}
-
-		private GameMoveBase DetermineStepForHero(GameState state, Entity hero)
-		{
-			Log($"Pondering for {hero.HeroType}");
-			return new GameMoveWait() { Reason = $"{hero.HeroType} needs to wait" };
-		}
+		}		
 	}
 }
