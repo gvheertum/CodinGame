@@ -35,7 +35,7 @@ namespace Challenges.BottersOfTheGalaxy
 				if(enemyTower.DistanceTo(ponderedMove as IPosition) < enemyTower.AttackRange)
 				{
 					Log("This move will bring us within the range of the tower, please don't");
-					return null;
+					return null; //TODO: Something more usefull?
 				}
 			}
 			Log("Let's go!");
@@ -48,17 +48,32 @@ namespace Challenges.BottersOfTheGalaxy
 			Log($"health: {hero.Health}");
 			if(hero.Health < CriticalHealth) 
 			{ 
-				Log($"Our health is below {CriticalHealth}, retreat");
-				var myTower = gameState.EntitiesMine.First(Helpers.Unit.IsTower);
-				if(hero.DistanceTo(myTower) > myTower.AttackRange) 
-				{
-					Log("Moving to our tower, it's a trap");
-					return new GameMoveMove() { X = myTower.X, Y = myTower.Y };
-				}
-				Log("It's dangerous to go alone! Take a nap");
-				return new GameMoveAttackClosest() { UnitType = BottersConstants.UnitTypes.Unit };
+				Log($"Our health is below {CriticalHealth}, do something");
+				return 
+					BuyHealthPotion(gameState, hero) ?? 
+					MoveBackToBase(gameState, hero) ?? 
+					new GameMoveWait() { Reason = "It's just not safe!"}; // TODO: We did some attack, but should only do so if there is someone near us { UnitType = BottersConstants.UnitTypes.Minion }; //Attack something close
 			}
-			Log("All is well");
+			Log("Health is okay, do something else");
+			return null;
+		}
+
+		private GameMoveBase BuyHealthPotion(GameState gameState, Entity hero)
+		{
+			var hP = gameState.Items.Where(i => i.ItemCost < gameState.Gold && i.Health > 0).OrderBy(i => i.IsPotion ? 0: 1).ThenByDescending(i => i.ItemCost);
+			if(!hP.Any()) { return null; }
+			return new GameMoveBuy() { ItemName = hP.First().ItemName };
+		}
+
+		private GameMoveBase MoveBackToBase(GameState gameState, Entity hero)
+		{
+			var myTower = gameState.EntitiesMine.First(Helpers.Unit.IsTower);
+			if(hero.DistanceTo(myTower) > myTower.AttackRange / 2) 
+			{
+				Log("Moving to our tower, make a trap");
+				return new GameMoveMove() { X = myTower.X, Y = myTower.Y };
+			}
+			Log("We are close to our tower, so bye");
 			return null;
 		}
 

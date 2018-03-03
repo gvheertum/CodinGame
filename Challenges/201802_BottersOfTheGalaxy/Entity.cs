@@ -1,7 +1,9 @@
+
+using Shared;
 /**
- * Made with love by AntiSquid, Illedan and Wildum.
- * You can help children learn to code while you participate by donating to CoderDojo.
- **/
+* Made with love by AntiSquid, Illedan and Wildum.
+* You can help children learn to code while you participate by donating to CoderDojo.
+**/
 namespace Challenges.BottersOfTheGalaxy
 {
 

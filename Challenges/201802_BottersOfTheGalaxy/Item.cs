@@ -15,6 +15,11 @@ namespace Challenges.BottersOfTheGalaxy
 			public int MaxMana {get;set;}
 			public int MoveSpeed {get;set;} // keyword BOOTS is present if the most important item stat is moveSpeed
 			public int ManaRegeneration {get;set;}
-			public int IsPotion {get;set;} // 0 if it's not instantly consumed
+			public bool IsPotion {get;set;} // 0 if it's not instantly consumed
+
+			public string GetItemString()
+			{
+				return $@"[Item: Name={ItemName} Health={Health}/{MaxHealth} ItemCost={ItemCost} ]";
+			}
 	}
 }

@@ -40,7 +40,7 @@ namespace Challenges.BottersOfTheGalaxy
 					MaxMana = int.Parse(inputs[6]),
 					MoveSpeed = int.Parse(inputs[7]), // keyword BOOTS is present if the most important item stat is moveSpeed
 					ManaRegeneration = int.Parse(inputs[8]),
-					IsPotion = int.Parse(inputs[9]) // 0 if it's not instantly consumed
+					IsPotion = int.Parse(inputs[9]) == 1 // 0 if it's not instantly consumed
 				};
 			}
 		}

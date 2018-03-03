@@ -69,10 +69,22 @@ namespace Challenges.BottersOfTheGalaxy
 			return $"MOVE_ATTACK {X} {Y} {UnitId}";
 		}
 	}
+
+	public class GameMoveBuy : GameMoveBase
+	{
+		public string ItemName {get;set;}
+		public override string GetMoveString()
+		{
+			return $"BUY {ItemName}";
+		}
+	}
+
+	public class GameMoveSell : GameMoveBase
+	{
+		public string ItemName {get;set;}
+		public override string GetMoveString()
+		{
+			return $"SELL {ItemName}";
+		}
+	}
 }
-
-/*
-
-BUY itemName
-SELL itemName
- */

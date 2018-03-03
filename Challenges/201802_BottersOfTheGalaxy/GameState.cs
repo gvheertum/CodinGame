@@ -31,14 +31,19 @@ namespace Challenges.BottersOfTheGalaxy
 			EntitiesMyHeros = EntitiesMine.Where(e => e.UnitType == BottersConstants.UnitTypes.Hero).ToList();
 		}
 
-		public string GetInitialGameStateString()
+		public string GetInitialGameStateDebugString()
 		{
 			return $@"[Gamestate: ID={MyTeam} BushCount={SpawnBushes.Count} ItemCount={Items.Count}]";
 		}
 
-		public string GetEntityString(List<Entity> entityList, string prefix)
+		public string GetEntityDebugString(List<Entity> entityList, string prefix)
 		{
-			return $@"[GameState: {prefix}-> Entities= {entityList.Count}]{string.Join("\r\n",entityList.Select(e => e.GetEntityString()))}";
+			return $@"[GameState: {prefix}-> Entities= {entityList.Count}]\r\n{string.Join("\r\n",entityList.Select(e => e.GetEntityString()))}";
+		}
+
+		public string GetItemDebugString()
+		{
+			return $@"[GameState: Items={Items.Count}]\r\n{string.Join("\r\n",Items.Select(e => e.GetItemString()))}";			
 		}
 
 		public void FlipItemPositions()

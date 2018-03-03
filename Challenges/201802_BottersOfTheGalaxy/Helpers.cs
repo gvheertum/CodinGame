@@ -24,7 +24,7 @@ namespace Challenges.BottersOfTheGalaxy
 
 			public static bool IsMinion(Entity e)
 			{
-				return e.UnitType == BottersConstants.UnitTypes.Unit;
+				return e.UnitType == BottersConstants.UnitTypes.Minion; 
 			}
 
 			public static bool IsNear(Entity e, Entity e2, int maxDist)

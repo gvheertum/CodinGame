@@ -13,7 +13,7 @@ namespace Challenges.BottersOfTheGalaxy
 			public const string Hero = "HERO";
 			public const string Tower = "TOWER";
 			public const string Groot = "GROOT";
-			public const string Unit = "UNIT";
+			public const string Minion = "UNIT";
 		}
 		public class Heros
 		{

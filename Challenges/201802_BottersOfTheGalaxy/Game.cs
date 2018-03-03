@@ -17,6 +17,12 @@ namespace Challenges.BottersOfTheGalaxy
 
 	public class Game : PuzzleMain
 	{
+		//FLAGS
+		private const bool EchoEntities = false;
+		private const bool EchoInitialBoard = true;
+		private const bool EchoItems = true;
+
+
 		private GameReader _gameReader = null;
 		private IGameEngine _gameEngine = null;
 		protected Game(IGameEngine gameEngine) : base(gameEngine) { _gameReader = new GameReader(gameEngine); _gameEngine = gameEngine; }
@@ -30,7 +36,8 @@ namespace Challenges.BottersOfTheGalaxy
 		{ 
 			Log("Run forrest run!");
 			var gameState = _gameReader.ReadIntialGameState();
-			Log(gameState.GetInitialGameStateString());
+			if(EchoInitialBoard) { Log(gameState.GetInitialGameStateDebugString()); }
+			if(EchoItems) { Log(gameState.GetItemDebugString()); }
 
 			// game loop
 			while (IsRunning())
@@ -40,10 +47,13 @@ namespace Challenges.BottersOfTheGalaxy
 				Log($"Board is flipped: {gameState.FlippedBoard}");
 				if(gameState.FlippedBoard) { gameState.FlipItemPositions(); }
 
-				Log(gameState.GetEntityString(gameState.EntitiesMine, "MINE"));
-				Log(gameState.GetEntityString(gameState.EntitiesMyHeros, "MY HEROS"));
-				Log(gameState.GetEntityString(gameState.EntitiesEnemy, "ENEMY"));
-				
+				if(EchoEntities)
+				{
+					Log(gameState.GetEntityDebugString(gameState.EntitiesMine, "MINE"));
+					Log(gameState.GetEntityDebugString(gameState.EntitiesMyHeros, "MY HEROS"));
+					Log(gameState.GetEntityDebugString(gameState.EntitiesEnemy, "ENEMY"));
+				} 
+
 				var gameMoves = DetermineGameMoves(gameState);
 				Log($"Moving {gameMoves.Count()} moves");
 
