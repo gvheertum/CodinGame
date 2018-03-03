@@ -80,5 +80,7 @@
     <Content Include="Challenges\201802_BottersOfTheGalaxy\SpawnBush.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\Entity.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\GameReader.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\GameMoves.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\BottersConstants.cs" />
   </ItemGroup>
 </Project>

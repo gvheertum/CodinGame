@@ -4,6 +4,7 @@
  **/
 namespace Challenges.BottersOfTheGalaxy
 {
+
 	public class Entity
 	{
 		public int UnitId {get;set;}

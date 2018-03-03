@@ -73,6 +73,7 @@ namespace Challenges.BottersOfTheGalaxy
 			{
 				gameState.Entities.Add(ReadEntity());
 			}
+			gameState.DistributeEntitiesOverSubCollections();
 			return gameState;
 		}
 
