@@ -1,7 +1,9 @@
+
+using Shared;
 /**
- * Made with love by AntiSquid, Illedan and Wildum.
- * You can help children learn to code while you participate by donating to CoderDojo.
- **/
+* Made with love by AntiSquid, Illedan and Wildum.
+* You can help children learn to code while you participate by donating to CoderDojo.
+**/
 namespace Challenges.BottersOfTheGalaxy
 {
 	public abstract class GameMoveBase
@@ -38,7 +40,7 @@ namespace Challenges.BottersOfTheGalaxy
 		}
 	}
 
-	public class GameMoveMove : GameMoveBase
+	public class GameMoveMove : GameMoveBase, IPosition
 	{
 		public int X {get;set;}
 		public int Y {get;set;}
@@ -57,7 +59,7 @@ namespace Challenges.BottersOfTheGalaxy
 		}
 	}
 
-	public class GameMoveMoveAttack : GameMoveBase
+	public class GameMoveMoveAttack : GameMoveBase, IPosition
 	{
 		public int X {get;set;}
 		public int Y {get;set;}

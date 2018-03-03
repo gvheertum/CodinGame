@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Shared;
 
 /**
  * Made with love by AntiSquid, Illedan and Wildum.
@@ -10,6 +11,8 @@ namespace Challenges.BottersOfTheGalaxy
 {
 	public class GameState 
 	{
+		//Indicate whether we are using a flipped board, to ensure we always are on the left
+		public bool FlippedBoard {get;set;}
 		public int MyTeam {get;set;}
 		public List<SpawnBush> SpawnBushes {get;set;} = new List<SpawnBush>();
 		public List<Item> Items {get;set;} = new List<Item>();
@@ -36,6 +39,13 @@ namespace Challenges.BottersOfTheGalaxy
 		public string GetEntityString(List<Entity> entityList, string prefix)
 		{
 			return $@"[GameState: {prefix}-> Entities= {entityList.Count}]{string.Join("\r\n",entityList.Select(e => e.GetEntityString()))}";
+		}
+
+		public void FlipItemPositions()
+		{
+			if(!FlippedBoard) { return; }
+			this.Entities.ForEach(e => e.Flip());
+			this.SpawnBushes.ForEach(e => e.Flip());
 		}
 	}
 }

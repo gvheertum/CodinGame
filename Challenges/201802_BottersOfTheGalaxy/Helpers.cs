@@ -1,9 +1,11 @@
 //require: Position.cs
 
+
+using Shared;
 /**
- * Made with love by AntiSquid, Illedan and Wildum.
- * You can help children learn to code while you participate by donating to CoderDojo.
- **/
+* Made with love by AntiSquid, Illedan and Wildum.
+* You can help children learn to code while you participate by donating to CoderDojo.
+**/
 namespace Challenges.BottersOfTheGalaxy
 {
 	public class Helpers
@@ -28,6 +30,16 @@ namespace Challenges.BottersOfTheGalaxy
 			public static bool IsNear(Entity e, Entity e2, int maxDist)
 			{
 				return (e.DistanceTo(e2) < maxDist);
+			}
+
+			public static bool IsMelee(Entity e)
+			{
+				return e.AttackRange > 200;
+			}
+
+			public static bool IsRange(Entity e)
+			{
+				return !IsMelee(e);
 			}
 		}
 	}

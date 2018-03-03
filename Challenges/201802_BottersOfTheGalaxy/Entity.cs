@@ -5,7 +5,7 @@
 namespace Challenges.BottersOfTheGalaxy
 {
 
-	public class Entity : Shared.Position
+	public class Entity : IPosition
 	{
 		public int UnitId {get;set;}
 		public int Team {get;set;}
@@ -27,7 +27,8 @@ namespace Challenges.BottersOfTheGalaxy
 		public string HeroType  {get;set;} // DEADPOOL, VALKYRIE, DOCTOR_STRANGE, HULK, IRONMAN
 		public int IsVisible {get;set;} // 0 if it isn't
 		public int ItemsOwned {get;set;} // useful from wood1
-
+		public int X {get;set;}
+		public int Y {get;set;}
 		public string GetEntityString()
 		{
 			return $"[Entity: Owner={Team} Type={UnitType} HeroType={HeroType}]";

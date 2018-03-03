@@ -6,6 +6,7 @@ using System.Collections;
 using Framework;
 using System.Collections.Generic;
 using System.Linq;
+using Shared;
 
 /**
  * Made with love by AntiSquid, Illedan and Wildum.
@@ -35,14 +36,21 @@ namespace Challenges.BottersOfTheGalaxy
 			while (IsRunning())
 			{
 				gameState = _gameReader.UpdateGameState(gameState);
+				gameState.FlippedBoard = IsBoardFlipped(gameState);
+				Log($"Board is flipped: {gameState.FlippedBoard}");
+				if(gameState.FlippedBoard) { gameState.FlipItemPositions(); }
+
 				Log(gameState.GetEntityString(gameState.EntitiesMine, "MINE"));
 				Log(gameState.GetEntityString(gameState.EntitiesMyHeros, "MY HEROS"));
 				Log(gameState.GetEntityString(gameState.EntitiesEnemy, "ENEMY"));
 				
 				var gameMoves = DetermineGameMoves(gameState);
 				Log($"Moving {gameMoves.Count()} moves");
+
+				//We need to flip items back!
 				foreach(var m in gameMoves)
 				{
+					if(gameState.FlippedBoard && m is IPosition) { (m as IPosition).Flip(); }
 					WriteLine(m.GetMoveString());
 				}
 			}
@@ -81,5 +89,12 @@ namespace Challenges.BottersOfTheGalaxy
 			Log($"Picking heroIdx={heroIdx} => {availableHeroes[heroIdx]}");
 			return new GameMoveSpawnUnit() { UnitName = availableHeroes[heroIdx] };
 		}		
+
+		private bool IsBoardFlipped(GameState state)
+		{
+			var myTower = state.EntitiesMine.First(Helpers.Unit.IsTower);
+			var enemyTower = state.EntitiesEnemy.First(Helpers.Unit.IsTower);
+			return enemyTower.X < myTower.X;
+		}
 	}
 }
