@@ -34,13 +34,14 @@ namespace Challenges.BottersOfTheGalaxy
 			{
 				gameState = _gameReader.UpdateGameState(gameState);
 				Log(gameState.GetEntityString(gameState.EntitiesMine, "MINE"));
+				Log(gameState.GetEntityString(gameState.EntitiesMyHeros, "MY HEROS"));
 				Log(gameState.GetEntityString(gameState.EntitiesEnemy, "ENEMY"));
 				
 				var gameMoves = DetermineGameMoves(gameState);
 				Log($"Moving {gameMoves.Count()} moves");
 				foreach(var m in gameMoves)
 				{
-					WriteLine("WAIT");
+					WriteLine(m.GetMoveString());
 				}
 			}
 		}		
@@ -49,23 +50,40 @@ namespace Challenges.BottersOfTheGalaxy
 		{
 			// If roundType has a negative value then you need to output a Hero name, such as "DEADPOOL" or "VALKYRIE".
 			// Else you need to output roundType number of any valid action, such as "WAIT" or "ATTACK unitId"
-				
+			int moveTick = gameState.RoundType;	
 			if(gameState.RoundType < 0) 
 			{ 
 				yield return DetermineHeroDeploy(gameState); //Only one step
 				yield break; 
 			}
 
-			for(var i = 0; i < gameState.RoundType; i++)
+			foreach(var hero in gameState.EntitiesMyHeros)
+			{
+				var hs = DetermineStepForHero(gameState, hero);
+				if(hs!=null) { yield return hs; moveTick--; }
+				
+			}
+
+			//Fill with moves
+			while(moveTick > 0)
 			{
 				yield return new GameMoveWait() { Reason = "No move plot, filling fashizzle" };
+				moveTick--;
 			}
 		}
 
 		private GameMoveBase DetermineHeroDeploy(GameState gameState)
 		{
 			var availableHeroes = BottersConstants.Heros.AllHeroes().ToList();
-			return new GameMoveSpawnUnit() { UnitName = availableHeroes[new Random().Next(0,availableHeroes.Count)] };
+			int heroIdx = new Random().Next(0,availableHeroes.Count);
+			Log($"Picking heroIdx={heroIdx} => {availableHeroes[heroIdx]}");
+			return new GameMoveSpawnUnit() { UnitName = availableHeroes[heroIdx] };
+		}
+
+		private GameMoveBase DetermineStepForHero(GameState state, Entity hero)
+		{
+			Log($"Pondering for {hero.HeroType}");
+			return new GameMoveWait() { Reason = $"{hero.HeroType} needs to wait" };
 		}
 	}
 }

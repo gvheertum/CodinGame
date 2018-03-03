@@ -19,10 +19,13 @@ namespace Challenges.BottersOfTheGalaxy
 		public List<Entity> Entities { get; set; } = new List<Entity>();
 		public List<Entity> EntitiesMine { get; set; } = new List<Entity>();
 		public List<Entity> EntitiesEnemy { get; set; } = new List<Entity>();
+		public List<Entity> EntitiesMyHeros { get; set; }
+
 		public void DistributeEntitiesOverSubCollections()
 		{
 			EntitiesMine = Entities.Where(e => e.Team == MyTeam).ToList();
 			EntitiesEnemy = Entities.Where(e => e.Team != MyTeam).ToList();
+			EntitiesMyHeros = EntitiesMine.Where(e => e.UnitType == BottersConstants.UnitTypes.Hero).ToList();
 		}
 
 		public string GetInitialGameStateString()
