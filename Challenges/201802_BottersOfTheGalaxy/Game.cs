@@ -78,13 +78,13 @@ namespace Challenges.BottersOfTheGalaxy
 			int moveTick = gameState.RoundType;	
 			if(gameState.RoundType < 0) 
 			{ 
-				yield return DetermineHeroDeploy(gameState); //Only one step
+				yield return DetermineHeroDeploy(gameState); //Only while state is "pending" hero
 				yield break; 
 			}
 
 			foreach(var hero in gameState.EntitiesMyHeros)
 			{
-				var heroAI = new HeroAI(_gameEngine, hero);
+				var heroAI = new HeroAIFactory().GetHeroAI(hero, _gameEngine);
 				var hs = heroAI.GetHeroMove(gameState);
 				if(hs!=null) { yield return hs; moveTick--; }
 			}
@@ -92,14 +92,14 @@ namespace Challenges.BottersOfTheGalaxy
 			//Fill with moves
 			while(moveTick > 0)
 			{
-				yield return new GameMoveWait() { Reason = "No move plot, filling fashizzle" };
+				yield return new GameMoveWait() { Reason = "No move plot, wait" };
 				moveTick--;
 			}
 		}
 
 		private GameMoveBase DetermineHeroDeploy(GameState gameState)
 		{
-			var availableHeroes = BottersConstants.Heros.AllHeroes().ToList();
+			var availableHeroes = BottersConstants.Heros.PreferredHeroes().ToList();
 			int heroIdx = new Random().Next(0,availableHeroes.Count);
 			Log($"Picking heroIdx={heroIdx} => {availableHeroes[heroIdx]}");
 			return new GameMoveSpawnUnit() { UnitName = availableHeroes[heroIdx] };

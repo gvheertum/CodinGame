@@ -82,8 +82,13 @@
     <Content Include="Challenges\201802_BottersOfTheGalaxy\GameReader.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\GameMoves.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\BottersConstants.cs" />
-    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAI.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\Helpers.cs" />
     <Content Include="Challenges\201802_CodeForLife\ControllableLifeBot.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroBaseAI.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIFactory.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIDeadpool.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIDoctorStrange.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIHulk.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIValkery.cs" />
   </ItemGroup>
 </Project>

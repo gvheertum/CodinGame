@@ -7,17 +7,24 @@ using System.Collections.Generic;
 
 namespace Framework
 {
-	//TODO: Implement this as a temp-helper class to prevent using PuzzleMain as default inheritance path
-	public abstract class PuzzleHelper
+	public abstract class PuzzleMain : PuzzleHelper
 	{
+		protected PuzzleMain(IGameEngine gameEngine) : base(gameEngine)
+		{
+		}
 
+		protected PuzzleMain(PuzzleHelper puzzleMain) : base(puzzleMain)
+		{
+		}
 	}
+
+
 
 	//Shared base for the puzzles. This allows us to have a simpler working of the game objects with simplified shorthands.
 	// Reading: Console.ReadLine -> ReadLine
 	// Writing: Console.WriteLine -> WriteLine
 	// Logging: Console.Error.Log -> Log
-	public abstract class PuzzleMain
+	public abstract class PuzzleHelper
 	{
 		//Suppress all console output (usefull for performance gain in large games)
 		//This will also suppress IO logic since the whole logging is disabled
@@ -27,7 +34,7 @@ namespace Framework
 		//The default Log will still work in this case
 		protected bool _echoDefaultSystemIO = false;
 		private IGameEngine _gameEngine;
-		protected PuzzleMain(IGameEngine gameEngine)
+		protected PuzzleHelper(IGameEngine gameEngine)
 		{
 			if(gameEngine == null) { Log($"No game-engine set, using the CodingGameProxy"); }
 			_gameEngine = gameEngine ?? new CodingGameProxyEngine();
@@ -35,7 +42,7 @@ namespace Framework
 		}
 
 		//Initializer for sub elements working on the puzzle root
-		protected PuzzleMain(PuzzleMain puzzleMain) : this(puzzleMain._gameEngine)
+		protected PuzzleHelper(PuzzleHelper puzzleMain) : this(puzzleMain._gameEngine)
 		{
 			this._runSilent = puzzleMain._runSilent;
 			this._echoDefaultSystemIO = puzzleMain._echoDefaultSystemIO;

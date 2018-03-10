@@ -31,6 +31,16 @@ namespace Challenges.BottersOfTheGalaxy
 				yield return Hulk;
 				yield return Ironman;
 			}
+
+			public static IEnumerable<string> PreferredHeroes()
+			{
+				yield return Deadpool;
+				yield return Valkery;
+				yield return DoctorStrange;
+				yield return Hulk;
+				//We no like Ironman, loses too much
+				//yield return Ironman;
+			}
 		}
 	}
 }

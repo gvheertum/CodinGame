@@ -9,6 +9,7 @@ namespace Challenges.BottersOfTheGalaxy
 	public abstract class GameMoveBase
 	{
 		public abstract string GetMoveString();
+		public int Rating {get;set;}
 	}
 
 	public class GameMoveSpawnUnit : GameMoveBase

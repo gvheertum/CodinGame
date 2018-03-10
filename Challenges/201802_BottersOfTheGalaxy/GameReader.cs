@@ -8,7 +8,7 @@ using Framework;
  **/
 namespace Challenges.BottersOfTheGalaxy
 {
-	public class GameReader : PuzzleMain
+	public class GameReader : PuzzleHelper
 	{
 		public GameReader(IGameEngine gameEngine) : base(gameEngine)
 		{
