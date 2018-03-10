@@ -34,7 +34,7 @@ namespace Challenges.BottersOfTheGalaxy
 			moves.AddRange(GetGenericMoves(gameState).Where(m => m != null));
 			moves.AddRange(GetSpecificMoves(gameState).Where(m => m != null));
 			
-			moves = moves.Where(m => this.MoveWillPutUsInRangeOfTower(m, gameState, _hero)).ToList();
+			moves = moves.Where(m => !this.MoveWillPutUsInRangeOfTower(m, gameState, _hero)).ToList();
 
 			moves = moves.OrderByDescending(m => m.Rating).ToList();
 			Log($"Found {moves.Count} moves:");
@@ -44,7 +44,7 @@ namespace Challenges.BottersOfTheGalaxy
 
 		private string GetMoveStringLog(GameMoveBase move)
 		{
-			return $"[{move.Rating}] {move.ToString()}";
+			return $"[{move.Rating}] {move.GetMoveString()}";
 		}
 
 		protected IEnumerable<GameMoveBase> GetGenericMoves(GameState gameState)
@@ -150,14 +150,14 @@ namespace Challenges.BottersOfTheGalaxy
 				var enemyTower = gameState.EntitiesEnemy.First(Helpers.Unit.IsTower);
 				if(enemyTower.DistanceTo(ponderedMove as IPosition) < enemyTower.AttackRange)
 				{
-					Log("This move will bring us within the range of the tower, please don't");
+					Log($"Move {GetMoveStringLog(ponderedMove)} will bring us within the range of the tower, please don't");
 					return true; //TODO: Something more usefull?
 				}
 			}
 			return false;
 		}
 
-		private const double CriticalHealth = 300;
+		private const double CriticalHealth = 200;
 		private bool AreWeInCriticalHealth(Entity hero)
 		{
 		

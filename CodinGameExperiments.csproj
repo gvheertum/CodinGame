@@ -90,5 +90,6 @@
     <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIDoctorStrange.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIHulk.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIValkery.cs" />
+    <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIBase.cs" />
   </ItemGroup>
 </Project>
