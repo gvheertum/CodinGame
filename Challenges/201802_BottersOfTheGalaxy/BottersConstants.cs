@@ -36,7 +36,7 @@ namespace Challenges.BottersOfTheGalaxy
 			{
 				//yield return Deadpool;
 				//yield return Valkery;
-				//yield return DoctorStrange;
+				//yield return DoctorStrange; 
 				yield return Hulk;
 				//We no like Ironman, loses too much
 				//yield return Ironman;
