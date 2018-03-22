@@ -9,6 +9,7 @@ using System.Linq;
 using Shared;
 
 /**
+	(Separate puzzle/non challenge url: https://www.codingame.com/ide/puzzle/botters-of-the-galaxy )
  * Made with love by AntiSquid, Illedan and Wildum.
  * You can help children learn to code while you participate by donating to CoderDojo.
  **/
