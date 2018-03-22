@@ -92,6 +92,7 @@
     <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIValkery.cs" />
     <Content Include="Challenges\201802_BottersOfTheGalaxy\HeroAIBase.cs" />
     <Content Include="Challenges\201803_TacTacToe.cs" />
+    <Content Include="Challenges\TicTacToePlayer.cs" />
     <Content Include="Challenges\201803_TicTacToe.cs" />
   </ItemGroup>
 </Project>
