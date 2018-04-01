@@ -115,25 +115,19 @@ namespace Puzzles.TicTacToe
 			_boardId = boardId;
 			InitializeBoard();
 		}
+
+		private List<TicTacToeCell> _grid = new List<TicTacToeCell>();
 		private void InitializeBoard()
 		{
-			var b = new List<TicTacToeCell>();
-			for(int i = 0; i < 3; i++)
-			{
-				for(int j = 0; j < 3; j++)
-				{
-					_grid.Add(new TicTacToeCell() { Row = i, Col = j });
-				}
-			}
+			_grid = GetAllBoardCells().ToList();
 		}
-		private List<TicTacToeCell> _grid = new List<TicTacToeCell>();
 
 		public void ProcessPlayerMove(TicTacToeCell playCell) 
 		{
 			if(!playCell.IsRealMove()) { Log($"Ignoring playcell since it is not a real move: {playCell}"); return; }
 
 			if(playCell.OwnedByPlayerID == null) { throw new Exception("Cannot process move if no owner set"); }
-			var gridCell = _grid.Single(g => g.Row == playCell.Row && g.Col == playCell.Col);
+			var gridCell = GetCell(playCell.Row, playCell.Col);
 			gridCell.OwnedByPlayerID = playCell.OwnedByPlayerID;
 			Log($"Updated {gridCell} to be owned by playerID {playCell.OwnedByPlayerID}");
 		}
@@ -155,23 +149,61 @@ namespace Puzzles.TicTacToe
 
 		private IEnumerable<TicTacToeCell> GetCellsEnemyCanUseToComplete() 
 		{
-			//Check rows
-			//Check cols
-			//Check diag?
-			yield break;
+			return GetAllBoardCells().Where(c => CellCanCompleteLine(c, TicTacToeCell.EnemyID) || CellCanCompleteCol(c, TicTacToeCell.EnemyID));
 		}
 
 		private IEnumerable<TicTacToeCell> GetCellsICanUseToComplete()
 		{
-			yield break;
-
+			return GetAllBoardCells().Where(c => CellCanCompleteLine(c, TicTacToeCell.PlayerID) || CellCanCompleteCol(c, TicTacToeCell.PlayerID));
 		}
 
+		private bool CellCanCompleteLine(TicTacToeCell cell, int playerID)
+		{
+			//for the row in the cell all items must be playerID OR the current item
+			for(int colIdx = 0; colIdx < 3; colIdx++)
+			{
+				if(cell.Col == colIdx) { continue; } //Skip myself
+				var gridCell = GetCell(cell.Row, colIdx);
+				if(gridCell.OwnedByPlayerID != playerID) { return false; }
+			}
+			//All elements processed, so it seems this can complete the line
+			return true;
+		}
 
+		private bool CellCanCompleteCol(TicTacToeCell cell ,int playerID)
+		{
+			//for the row in the cell all items must be playerID OR the current item
+			for(int rowIdx = 0; rowIdx < 3; rowIdx++)
+			{
+				if(cell.Row == rowIdx) { continue; } //Skip myself
+				var gridCell = GetCell(rowIdx, cell.Col);
+				if(gridCell.OwnedByPlayerID != playerID) { return false; }
+			}
+			//All elements processed, so it seems this can complete the line
+			return true;
+		}
 
 		private IEnumerable<TicTacToeCell> GetAlternateMoveCandidates()
 		{
-			yield break;
+			yield return new TicTacToeCell() { Row = 1, Col = 1 }; //Always start opening on center
+		}
+
+		// Cell production and retrieval
+
+		private IEnumerable<TicTacToeCell> GetAllBoardCells()
+		{
+			for(int i = 0; i < 3; i++)
+			{
+				for(int j = 0; j < 3; j++)
+				{
+					yield return new TicTacToeCell() { Row = i, Col = j };
+				}
+			}
+		}
+		
+		private TicTacToeCell GetCell(int row, int col)
+		{
+			return _grid.Single(g => g.Row == row && g.Col == col);
 		}
 	}
 }
