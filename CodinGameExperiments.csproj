@@ -94,5 +94,10 @@
     <Content Include="Challenges\201803_TacTacToe.cs" />
     <Content Include="Challenges\TicTacToePlayer.cs" />
     <Content Include="Challenges\201803_TicTacToe.cs" />
+    <Content Include="Challenges\201803_TicTacToe\Game.cs" />
+    <Content Include="Challenges\201803_TicTacToe\TicTacToeBoard.cs" />
+    <Content Include="Challenges\201803_TicTacToe\TicTacToeCell.cs" />
+    <Content Include="Challenges\201803_TicTacToe\TicTacToeBoardHelper.cs" />
+    <Content Include="Challenges\201803_TicTacToe\TicTacToeAI.cs" />
   </ItemGroup>
 </Project>
