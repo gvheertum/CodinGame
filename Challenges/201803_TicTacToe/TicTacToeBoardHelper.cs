@@ -10,6 +10,13 @@ namespace Puzzles.TicTacToe
 {
 	public class TicTacToeBoardHelper 
 	{
+		private readonly int _colMultiplier;
+		private readonly int _rowMultiplier;
+		public TicTacToeBoardHelper(int colMultipler, int rowMultiplier)
+		{
+			_colMultiplier = colMultipler;
+			_rowMultiplier = rowMultiplier;
+		}
 		// Cell production and retrieval
 		public IEnumerable<TicTacToeCell> GetAllPossibleBoardCells()
 		{
@@ -17,7 +24,7 @@ namespace Puzzles.TicTacToe
 			{
 				for(int j = 0; j < 3; j++)
 				{
-					yield return new TicTacToeCell() { Row = i, Col = j };
+					yield return new TicTacToeCell() { Row = i, Col = j, ColMultiplier = _colMultiplier, RowMultiplier = _rowMultiplier };
 				}
 			}
 		}

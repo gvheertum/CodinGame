@@ -7,14 +7,13 @@ namespace Shared
 {
 	public static class IEnumerableHelpers
 	{
-		public static T RandomFirstOrDefault<T>(this IEnumerable<T> elements, Func<T, bool> predicate) 
+		public static T RandomFirstOrDefault<T>(this IEnumerable<T> elements, Func<T, bool> predicate = null) 
 		{
+			predicate = predicate ?? ((t) => true); //If no predicate assume always true
 			var filtered = elements.Where(predicate);
 			if(filtered?.Any() != true) { return default(T); }
 			var idx = new System.Random().Next(0, filtered.Count() - 1);
-			return elements.Skip(idx).First();
+			return filtered.Skip(idx).First();
 		}
-
-
 	}
 }

@@ -100,5 +100,8 @@
     <Content Include="Challenges\201803_TicTacToe\TicTacToeBoardHelper.cs" />
     <Content Include="Challenges\201803_TicTacToe\TicTacToeAI.cs" />
     <Content Include="Challenges\201803_TicTacToe\TicTacToeCalculatedAction.cs" />
+    <Content Include="Challenges\201803_TicTacToe\TicTacToeMultiAI.cs" />
+    <Content Include="Challenges\201803_TicTacToe\TicTacToeAIMulti.cs" />
+    <Content Include="Shared\IEnumerableHelpers.cs" />
   </ItemGroup>
 </Project>

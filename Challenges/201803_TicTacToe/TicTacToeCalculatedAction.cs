@@ -13,6 +13,11 @@ namespace Puzzles.TicTacToe
 		{
 			ActionType = type;
 		}
+
+		public override string ToString()
+		{
+			return $"[TicTacToeMove] [{ActionType}] {Row}(*{RowMultiplier}):{Col}(*{ColMultiplier})";
+		}
 	}
 
 	public enum TicTacToeCalculatedActionType
@@ -20,6 +25,7 @@ namespace Puzzles.TicTacToe
 		None,
 		ICanComplete,
 		EnemyCanComplete,
+		DeadCenterMove,
 		CenterMove,
 		NeighbourMove,
 		Other

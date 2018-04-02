@@ -16,6 +16,8 @@ namespace Puzzles.TicTacToe
 
 	public class Game : PuzzleMain
 	{
+		private bool GameIsMultiBoard = true;
+
 		protected Game(IGameEngine gameEngine) : base(gameEngine)
 		{
 		}
@@ -27,29 +29,30 @@ namespace Puzzles.TicTacToe
 
 		public override void Run()
 		{
-		
-			var myBoard = new TicTacToeBoard(0, (o) => Log(o));
-			var myAI = new TicTacToeAI(myBoard, (o) => Log(o));
+			//Generate the boards and stuff
+			var myBoards = (GameIsMultiBoard ? GenerateBoardsForMultiTTT() : new [] { new TicTacToeBoard(0, 0, 0, (o) => Log(o)) }).ToList();
+			var ais = new TicTacToeAIMulti(myBoards, (o) => Log(o));
+			
 			// game loop
 			while (IsRunning())
 			{
 				var oppMove = ReadOpponentMove(ReadLine());
 				Log($"Opponent: {oppMove}");
-				myBoard.ProcessPlayerMove(oppMove);
+				GetBoardForCell(oppMove, myBoards).ProcessPlayerMove(oppMove);
 				
 				//Read the available moves on the system
 				var availableMoves = ReadAvailableMoves(Int32.Parse(ReadLine())).ToList();
-				Log($"Found {availableMoves.Count()} available moves");
-				availableMoves.ToList().ForEach(m => Log(m));
+				Log($"Retrieved {availableMoves.Count()} available moves from input");
+				//availableMoves.ToList().ForEach(m => Log(m));
 
 				//Determine what to do
-				var moveToMake = myAI.CalculateBestMove(availableMoves);
+				var moveToMake = ais.DetermineMove(availableMoves);
 				Log($"Making move: {moveToMake}");
 				moveToMake.OwnedByPlayerID = TicTacToeCell.PlayerID;
 				
 				//Tell the board we are doing this!
-				myBoard.ProcessPlayerMove(moveToMake);
-				Console.WriteLine($"{moveToMake.Row} {moveToMake.Col}");
+				GetBoardForCell(oppMove, myBoards).ProcessPlayerMove(moveToMake);
+				Console.WriteLine(moveToMake.GetOutputString());
 			}
 		}
 
@@ -61,12 +64,14 @@ namespace Puzzles.TicTacToe
 			int row = int.Parse(inputs[0]);
 			int col = int.Parse(inputs[1]);
 
-			return new TicTacToeCell()
+			var c = new TicTacToeCell()
 			{
 				Row = row,
 				Col = col,
 				OwnedByPlayerID = TicTacToeCell.EnemyID,
 			};
+			c.Normalize();
+			return c;
 		} 
 
 		private IEnumerable<TicTacToeCell> ReadAvailableMoves(int availableMoves)
@@ -84,11 +89,32 @@ namespace Puzzles.TicTacToe
 			int row = int.Parse(inputs[0]);
 			int col = int.Parse(inputs[1]);
 
-			return new TicTacToeCell()
+			var c = new TicTacToeCell()
 			{
 				Row = row,
 				Col = col,
 			}; 
+			c.Normalize();
+			return c;
+		}
+
+
+		//Helpers to get the corresponding board for a given move
+		private TicTacToeBoard GetBoardForCell(TicTacToeCell cell, IEnumerable<TicTacToeBoard> boards)
+		{
+			return boards.Single(b => b.BoardRowMultiplier == cell.RowMultiplier && b.BoardColMultiplier == cell.ColMultiplier);
+		}
+
+		private IEnumerable<TicTacToeBoard> GenerateBoardsForMultiTTT()
+		{
+			int boardId = 0;
+			for(int r = 0; r < 3; r++)
+			{
+				for(int c = 0; c < 3; c++)
+				{
+					yield return new TicTacToeBoard(++boardId, r, c, (o) => Log(o));
+				}
+			}
 		}
 	}
 }

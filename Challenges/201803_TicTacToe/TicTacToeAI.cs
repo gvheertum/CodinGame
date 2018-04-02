@@ -9,29 +9,56 @@ using System.Collections.Generic;
  **/
 namespace Puzzles.TicTacToe
 {
+
 	public class TicTacToeAI : Framework.LogInjectableClass
 	{
-		TicTacToeBoard _board;
-		TicTacToeBoardHelper _helper = new TicTacToeBoardHelper();
+		private readonly TicTacToeBoard _board;
+		private readonly TicTacToeBoardHelper _helper; 
 		public TicTacToeAI(TicTacToeBoard board, Action<object> logFunc) : base(logFunc)
 		{
 			_board = board;
+			_helper = new TicTacToeBoardHelper(board.BoardRowMultiplier, board.BoardColMultiplier);
+			Log($"Created ai for: {board}");
 		}
-		public TicTacToeCalculatedAction CalculateBestMove(List<TicTacToeCell> cellsPlayable)
+
+		public IEnumerable<TicTacToeCalculatedAction> CalculateMoves(List<TicTacToeCell> cellsPlayable)
 		{
-			Func<TicTacToeCalculatedAction, bool> cellIsPlayable = (cell) => cellsPlayable.Any(c => c.Col == cell.Col && c.Row == cell.Row);
+			Log($"Running moves for AI on board: {_board}");
+			
+			Func<TicTacToeCalculatedAction, bool> cellIsPlayable = (cell) => cellsPlayable.Any(c => 
+				c.Col == cell.Col && 
+				c.Row == cell.Row &&
+				c.RowMultiplier == cell.RowMultiplier &&
+				c.ColMultiplier == cell.ColMultiplier
+			);
+			bool centerField = _board.BoardRowMultiplier == 1 && _board.BoardColMultiplier == 1;
+			if(centerField) { Log("Currently in center of board"); }
 
 			var cellsToCompleteForMe = GetCellsICanUseToComplete().Where(cellIsPlayable);
 			var cellsToComplateForEnemy = GetCellsEnemyCanUseToComplete().Where(cellIsPlayable);
-			var cellCentre = new [] { new TicTacToeCalculatedAction() { Col = 1, Row = 1, ActionType = TicTacToeCalculatedActionType.CenterMove}};
+			var cellCentre = new [] 
+			{ 
+				new TicTacToeCalculatedAction() 
+				{ 
+					Col = 1, 
+					Row = 1, 
+					ColMultiplier = _board.BoardColMultiplier, 
+					RowMultiplier = _board.BoardRowMultiplier, 
+					ActionType = centerField 
+						? TicTacToeCalculatedActionType.DeadCenterMove 
+						: TicTacToeCalculatedActionType.CenterMove
+				}
+			}.Where(cellIsPlayable);
 			var cellsAlternateMoves = GetNeighboursOnOwnedCells().Where(cellIsPlayable);
 
 			//First complete my own element, then try to block the enemy, then take center, if that fails we try to take a neighbour, otherwise pick a move
-			Log($"Found moves: my complete: {cellsToCompleteForMe.Count()}, enemy complete: {cellsToComplateForEnemy.Count()}, centre: {cellCentre.Count()}, other {cellsAlternateMoves}");
-			return cellsToCompleteForMe.FirstOrDefault() ??
-				cellsToComplateForEnemy.FirstOrDefault() ??
-				cellCentre.FirstOrDefault() ??
-				cellsAlternateMoves.FirstOrDefault();
+			//Log($"Found moves: my complete: {cellsToCompleteForMe.Count()}, enemy complete: {cellsToComplateForEnemy.Count()}, centre: {cellCentre.Count()}, other {cellsAlternateMoves}");
+			var list = new List<TicTacToeCalculatedAction>();
+			list.AddRange(cellsToCompleteForMe); 
+			list.AddRange(cellsToComplateForEnemy);
+			list.AddRange(cellCentre);
+			list.AddRange(cellsAlternateMoves);
+			return list;
 		}
 
 
@@ -88,7 +115,14 @@ namespace Puzzles.TicTacToe
 				{
 					if(row != cMove.Row)
 					{
-						yield return new TicTacToeCalculatedAction() { Row = row, Col = cMove.Col, ActionType = TicTacToeCalculatedActionType.NeighbourMove };
+						yield return new TicTacToeCalculatedAction() 
+						{ 
+							Row = row, 
+							Col = cMove.Col,
+							ColMultiplier = _board.BoardColMultiplier,
+							RowMultiplier = _board.BoardRowMultiplier,
+							ActionType = TicTacToeCalculatedActionType.NeighbourMove 
+						};
 					}
 				}
 
@@ -96,7 +130,14 @@ namespace Puzzles.TicTacToe
 				{
 					if(col != cMove.Col)
 					{
-						yield return new TicTacToeCalculatedAction() { Row = cMove.Row, Col = col, ActionType = TicTacToeCalculatedActionType.NeighbourMove };
+						yield return new TicTacToeCalculatedAction() 
+						{ 
+							Row = cMove.Row, 
+							Col = col,
+							ColMultiplier = _board.BoardColMultiplier,
+							RowMultiplier = _board.BoardRowMultiplier,
+							ActionType = TicTacToeCalculatedActionType.NeighbourMove 
+						};
 					}
 				}
 			}

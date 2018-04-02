@@ -11,11 +11,16 @@ namespace Puzzles.TicTacToe
 {
 	public class TicTacToeBoard : Framework.LogInjectableClass
 	{
-		private int _boardId;
-		private TicTacToeBoardHelper _helper = new TicTacToeBoardHelper();
-		public TicTacToeBoard(int boardId, Action<object> log) : base(log)
+		public int BoardID { get; private set; }
+		public int BoardColMultiplier { get; private set; }
+		public int BoardRowMultiplier { get; private set; }
+		private readonly TicTacToeBoardHelper _helper;
+		public TicTacToeBoard(int boardID, int rowMultiplier, int colMultiplier, Action<object> log) : base(log)
 		{
-			_boardId = boardId;
+			BoardID = boardID;
+			BoardRowMultiplier = rowMultiplier;
+			BoardColMultiplier = colMultiplier;
+			_helper = new TicTacToeBoardHelper(BoardRowMultiplier, BoardColMultiplier);
 			InitializeBoard();
 		}
 
@@ -44,6 +49,11 @@ namespace Puzzles.TicTacToe
 		public TicTacToeCell GetBoardCell(int row, int col)
 		{
 			return _helper.GetCellFromCollection(_grid, row, col);
+		}
+
+		public override string ToString()
+		{
+			return $"[Board] id:{BoardID} r*:{BoardRowMultiplier} c*:{BoardColMultiplier}";
 		}
 	}
 }
