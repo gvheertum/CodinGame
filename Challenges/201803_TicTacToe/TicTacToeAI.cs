@@ -17,13 +17,13 @@ namespace Puzzles.TicTacToe
 		{
 			_board = board;
 		}
-		public TicTacToeCell CalculateBestMove(List<TicTacToeCell> cellsPlayable)
+		public TicTacToeCalculatedAction CalculateBestMove(List<TicTacToeCell> cellsPlayable)
 		{
-			Func<TicTacToeCell ,bool> cellIsPlayable = (cell) => cellsPlayable.Any(c => c.Col == cell.Col && c.Row == cell.Row);
+			Func<TicTacToeCalculatedAction, bool> cellIsPlayable = (cell) => cellsPlayable.Any(c => c.Col == cell.Col && c.Row == cell.Row);
 
 			var cellsToCompleteForMe = GetCellsICanUseToComplete().Where(cellIsPlayable);
 			var cellsToComplateForEnemy = GetCellsEnemyCanUseToComplete().Where(cellIsPlayable);
-			var cellCentre = new [] { new TicTacToeCell() { Col = 1, Row = 1}};
+			var cellCentre = new [] { new TicTacToeCalculatedAction() { Col = 1, Row = 1, ActionType = TicTacToeCalculatedActionType.CenterMove}};
 			var cellsAlternateMoves = GetNeighboursOnOwnedCells().Where(cellIsPlayable);
 
 			//First complete my own element, then try to block the enemy, then take center, if that fails we try to take a neighbour, otherwise pick a move
@@ -31,22 +31,25 @@ namespace Puzzles.TicTacToe
 			return cellsToCompleteForMe.FirstOrDefault() ??
 				cellsToComplateForEnemy.FirstOrDefault() ??
 				cellCentre.FirstOrDefault() ??
-				cellsAlternateMoves.FirstOrDefault() ??
-				cellsPlayable.FirstOrDefault();
+				cellsAlternateMoves.FirstOrDefault();
 		}
 
 
 		//See if we can make a complete line, if so that move should be done
-		private IEnumerable<TicTacToeCell> GetCellsICanUseToComplete()
+		private IEnumerable<TicTacToeCalculatedAction> GetCellsICanUseToComplete()
 		{
-			return _helper.GetAllPossibleBoardCells().Where(c => CellCanCompleteLine(c, TicTacToeCell.PlayerID) || CellCanCompleteCol(c, TicTacToeCell.PlayerID));
+			return _helper.GetAllPossibleBoardCells()
+				.Where(c => CellCanCompleteLine(c, TicTacToeCell.PlayerID) || CellCanCompleteCol(c, TicTacToeCell.PlayerID))
+				.Select(c => new TicTacToeCalculatedAction(c, TicTacToeCalculatedActionType.ICanComplete));
 		}
 
 
 		//See what the enemy can complete so we can block that
-		private IEnumerable<TicTacToeCell> GetCellsEnemyCanUseToComplete() 
+		private IEnumerable<TicTacToeCalculatedAction> GetCellsEnemyCanUseToComplete() 
 		{
-			return _helper.GetAllPossibleBoardCells().Where(c => CellCanCompleteLine(c, TicTacToeCell.EnemyID) || CellCanCompleteCol(c, TicTacToeCell.EnemyID));
+			return _helper.GetAllPossibleBoardCells()
+				.Where(c => CellCanCompleteLine(c, TicTacToeCell.EnemyID) || CellCanCompleteCol(c, TicTacToeCell.EnemyID))
+				.Select(c => new TicTacToeCalculatedAction(c, TicTacToeCalculatedActionType.EnemyCanComplete));
 		}
 
 		private bool CellCanCompleteLine(TicTacToeCell cell, int playerID)
@@ -75,7 +78,7 @@ namespace Puzzles.TicTacToe
 			return true;
 		}
 
-		private IEnumerable<TicTacToeCell> GetNeighboursOnOwnedCells()
+		private IEnumerable<TicTacToeCalculatedAction> GetNeighboursOnOwnedCells()
 		{	
 			//Return all neigbours to my element to go through
 			var myCurrentMoves = _board.GetBoardCells().Where(g => g.OwnedByPlayerID == TicTacToeCell.PlayerID);
@@ -85,7 +88,7 @@ namespace Puzzles.TicTacToe
 				{
 					if(row != cMove.Row)
 					{
-						yield return new TicTacToeCell() { Row = row, Col = cMove.Col };
+						yield return new TicTacToeCalculatedAction() { Row = row, Col = cMove.Col, ActionType = TicTacToeCalculatedActionType.NeighbourMove };
 					}
 				}
 
@@ -93,7 +96,7 @@ namespace Puzzles.TicTacToe
 				{
 					if(col != cMove.Col)
 					{
-						yield return new TicTacToeCell() { Row = cMove.Row, Col = col };
+						yield return new TicTacToeCalculatedAction() { Row = cMove.Row, Col = col, ActionType = TicTacToeCalculatedActionType.NeighbourMove };
 					}
 				}
 			}

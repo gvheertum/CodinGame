@@ -99,5 +99,6 @@
     <Content Include="Challenges\201803_TicTacToe\TicTacToeCell.cs" />
     <Content Include="Challenges\201803_TicTacToe\TicTacToeBoardHelper.cs" />
     <Content Include="Challenges\201803_TicTacToe\TicTacToeAI.cs" />
+    <Content Include="Challenges\201803_TicTacToe\TicTacToeCalculatedAction.cs" />
   </ItemGroup>
 </Project>
