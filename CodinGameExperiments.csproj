@@ -103,5 +103,10 @@
     <Content Include="Challenges\201803_TicTacToe\TicTacToeMultiAI.cs" />
     <Content Include="Challenges\201803_TicTacToe\TicTacToeAIMulti.cs" />
     <Content Include="Shared\IEnumerableHelpers.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\Game.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\EnumHelper.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\GameState.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\Site.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\Unit.cs" />
   </ItemGroup>
 </Project>
