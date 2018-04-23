@@ -1,11 +1,11 @@
 //https://www.codingame.com/ide/challenge/code-royale
+using Shared;
+
 namespace Challenges.CodeRoyal
 {
-	public class Site 
+	public class Site : Position
 	{
 		public int SiteID { get; set; }
-		public int X { get; set; }
-		public int Y { get; set; }
 		public int Radius { get; set; }
 		public int Ignore1 { get; internal set; }
 		public int Ignore2 { get; internal set; }

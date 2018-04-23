@@ -1,3 +1,4 @@
+//require: Position.cs
 using System.Linq;
 using System.IO;
 using System.Text;
@@ -9,7 +10,6 @@ using System;
 //https://www.codingame.com/ide/challenge/code-royale
 namespace Challenges.CodeRoyal
 {
-
 	public partial class CodeRoyalGame : PuzzleMain
 	{
 		protected CodeRoyalGame(IGameEngine gameEngine) : base(gameEngine) { }
@@ -19,23 +19,23 @@ namespace Challenges.CodeRoyal
 			new CodeRoyalGame(new CodingGameProxyEngine()).Run();
 		}
 
-		
-
 		public override void Run()
 		{
 			var gameState = new GameState();
 			gameState.Sites = ReadSites().ToList();
+
+			var player = new CodeRoyalPlayer((o) => Log(o));
 
 			// game loop
 			while (IsRunning())
 			{
 				//Update the field
 				UpdateState(gameState);
-
+				var moves = player.GetMoves(gameState);
 				// First line: A valid queen action
 				// Second line: A set of training instructions
-				WriteLine("WAIT");
-				WriteLine("TRAIN");
+				WriteLine(moves.QueenAction); //"WAIT"
+				WriteLine(moves.TrainingAction); //"TRAIN"
 			}
 		}
 

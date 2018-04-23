@@ -108,5 +108,7 @@
     <Content Include="Challenges\201804_CodeRoyal\GameState.cs" />
     <Content Include="Challenges\201804_CodeRoyal\Site.cs" />
     <Content Include="Challenges\201804_CodeRoyal\Unit.cs" />
+    <Content Include="Challenges\201802_CodeForLife\LifeBot.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\CodeRoyalPlayer.cs" />
   </ItemGroup>
 </Project>
