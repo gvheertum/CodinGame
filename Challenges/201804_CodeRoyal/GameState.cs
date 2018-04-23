@@ -12,11 +12,33 @@ namespace Challenges.CodeRoyal
 
 		public int Gold { get; internal set; }
 		public int TouchedSite { get; internal set; }
-		public List<CodeRoyalGame.Unit> Units { get; internal set; }
+		public List<Unit> Units { get; internal set; }
 
 		public Site GetSite(int siteId)
 		{
 			return Sites.SingleOrDefault(s => s.SiteID == siteId);
+		}
+
+		public IEnumerable<Site> GetMySites()
+		{
+			return Sites.Where(s => s.Ownership == Ownership.Friendly);
+		}
+
+		public IEnumerable<Site> GetFreeSites()
+		{
+			return Sites.Where(s => s.Ownership == Ownership.NotApplicable);
+		}
+
+
+		public Unit GetMyQueen() 
+		{
+			return Units.Single(u => u.Ownership == Ownership.Friendly && u.UnitType == UnitType.Queen);
+		}
+
+
+		public Unit GetEnemyQueen() 
+		{
+			return Units.SingleOrDefault(u => u.Ownership == Ownership.Enemy && u.UnitType == UnitType.Queen);
 		}
 	}
 }

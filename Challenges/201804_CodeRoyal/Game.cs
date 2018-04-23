@@ -32,10 +32,14 @@ namespace Challenges.CodeRoyal
 				//Update the field
 				UpdateState(gameState);
 				var moves = player.GetMoves(gameState);
+				Log("Found the following moves:");
+				Log($"Queen: {moves.QueenAction}");
+				Log($"Training: {moves.TrainingAction}");
+
 				// First line: A valid queen action
 				// Second line: A set of training instructions
-				WriteLine(moves.QueenAction); //"WAIT"
-				WriteLine(moves.TrainingAction); //"TRAIN"
+				WriteLine(moves.QueenAction.ToUpperInvariant().Trim());
+				WriteLine(moves.TrainingAction.ToUpperInvariant().Trim());
 			}
 		}
 

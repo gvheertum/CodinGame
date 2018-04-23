@@ -17,10 +17,11 @@ namespace Shared
 			return System.Math.Sqrt((xDiff*xDiff) + (yDiff*yDiff));
 		}
 
-		public static PositionDistance<T> DistanceToDetailed<T>(this T position, T p2)
+		public static PositionDistance<T,T2> DistanceToDetailed<T,T2>(this T position, T2 p2)
 			where T : IPosition
+			where T2 : IPosition
 		{
-			return new PositionDistance<T>()
+			return new PositionDistance<T,T2>()
 			{
 				Origin = position,
 				Destination = p2,
@@ -28,8 +29,9 @@ namespace Shared
 			};
 		}
 
-		public static IEnumerable<PositionDistance<T>> DistanceToDetailed<T>(this T origin, IEnumerable<T> destinations)
+		public static IEnumerable<PositionDistance<T,T2>> DistancesToDetailed<T,T2>(this T origin, IEnumerable<T2> destinations)
 			where T : IPosition
+			where T2 : IPosition
 		{
 			foreach(var dest in destinations)
 			{
@@ -44,10 +46,12 @@ namespace Shared
 		}
 	}
 
-	public class PositionDistance<T> where T : IPosition
+	public class PositionDistance<T, T2> 
+		where T : IPosition
+		where T2 : IPosition
 	{
 		public T Origin {get;set;}
-		public T Destination {get;set;}
+		public T2 Destination {get;set;}
 		public double Distance { get;set;}
 	}
 
