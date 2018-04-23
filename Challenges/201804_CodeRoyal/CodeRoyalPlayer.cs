@@ -29,22 +29,28 @@ namespace Challenges.CodeRoyal
 			Log($"Site: {selectedMove.Destination.SiteID} pos:{selectedMove.Destination.X}:{selectedMove.Destination.Y}");
 			Log($"Queen: pos:{selectedMove.Origin.X}:{selectedMove.Origin.Y}");
 
-			if(selectedMove.Destination.PlannedUnitType == null) 
+			if(selectedMove.Destination.UnitTypePlannedForMove == null) 
 			{
-				selectedMove.Destination.PlannedUnitType = 
-					state.GetMySites().Count(s => s.PlannedUnitType == UnitType.Knight) > state.GetMySites().Count(s => s.PlannedUnitType == UnitType.Archer)
+				selectedMove.Destination.UnitTypePlannedForMove = 
+					state.GetMySites().Count(s => s.DeductedBarrackUnitType == UnitType.Knight) > state.GetMySites().Count(s => s.DeductedBarrackUnitType == UnitType.Archer)
 					? UnitType.Archer
 					: UnitType.Knight;
 			}
-			Log($"Building type: {selectedMove.Destination.PlannedUnitType}");
+			Log($"Building type: {selectedMove.Destination.UnitTypePlannedForMove}");
 
-			return $"BUILD {selectedMove.Destination.SiteID} BARRACKS-{selectedMove.Destination.PlannedUnitType}";
+			//This move will claim our destination, so update
+			if(state.TouchedSite == selectedMove.Destination.SiteID)
+			{
+				Log("we are already there, so that's that");
+			}
+
+			return $"BUILD {selectedMove.Destination.SiteID} BARRACKS-{selectedMove.Destination.UnitTypePlannedForMove}";
 		}
 
 		private string GetTrainingActions(GameState state)
 		{
-			var barracks = state.GetMySites().ToList();
-			if(!barracks.Any()) {Log("No barracks, so no training"); return ""; }
+			var barracks = state.GetMySites().Where(s => s.StructureType == StructureType.Barracks && s.DeductedBarrackWaitTime <= 0).ToList();
+			if(!barracks.Any()) {Log("No barracks (ready), so no training"); return ""; }
 
 			Log($"We have {barracks.Count()} barracks and {state.Gold} gold");
 			var currGold = state.Gold;
@@ -54,7 +60,7 @@ namespace Challenges.CodeRoyal
 				var pick = barracks.First();
 				if(pick.TrainingCost <= currGold)
 				{
-					Log($"Issue train for site {pick.SiteID} (type {pick.PlannedUnitType}) costing: {pick.TrainingCost}");
+					Log($"Issue train for site {pick.SiteID} (type {pick.DeductedBarrackUnitType}) costing: {pick.TrainingCost}");
 					res += pick.SiteID + " "; 
 					currGold = currGold - pick.TrainingCost;
 				}
@@ -68,7 +74,7 @@ namespace Challenges.CodeRoyal
 		private PositionDistance<Unit,Site> GetClosestSiteToQueen(GameState state)
 		{
 			var sitesWeCanTake = state.GetFreeSites();
-			var siteDistances = state.GetMyQueen().DistancesToDetailed(state.Sites).OrderBy(d => d.Distance);
+			var siteDistances = state.GetMyQueen().DistancesToDetailed(sitesWeCanTake).OrderBy(d => d.Distance);
 			return siteDistances.FirstOrDefault();
 		}
 	}

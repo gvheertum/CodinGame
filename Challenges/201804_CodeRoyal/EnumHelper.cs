@@ -8,7 +8,8 @@ namespace Challenges.CodeRoyal
 	{
 		Queen,
 		Knight,
-		Archer
+		Archer,
+		Giant
 	}
 
 	public enum Ownership
@@ -21,7 +22,8 @@ namespace Challenges.CodeRoyal
 	public enum StructureType
 	{
 		NoStructure,
-		Barracks
+		Barracks,
+		Tower
 	}
 
 	public class EnumHelper
@@ -34,6 +36,7 @@ namespace Challenges.CodeRoyal
 				case -1: return UnitType.Queen;
 				case 0: return UnitType.Knight;
 				case 1: return UnitType.Archer;
+				case 2: return UnitType.Giant;
 				default: throw new Exception($"No type match for typeid: {typeId}");
 			}
 		}
@@ -57,6 +60,7 @@ namespace Challenges.CodeRoyal
 			{
 				case -1: return StructureType.NoStructure;
 				case 2: return StructureType.Barracks;
+				case 1: return StructureType.Tower;
 				default: throw new Exception($"No type match for structureType: {typeId}");
 			}
 		}

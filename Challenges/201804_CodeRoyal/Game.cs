@@ -7,6 +7,12 @@ using System.Collections.Generic;
 using Framework;
 using System;
 
+//TODO: Build towers 
+//TODO: Traing giants (barracks and units)
+//TODO: Keep away from enemy towers
+//TODO: Prioritize movement and gold
+//TODO: Move away queen when in a pickle
+
 //https://www.codingame.com/ide/challenge/code-royale
 namespace Challenges.CodeRoyal
 {
@@ -98,7 +104,6 @@ namespace Challenges.CodeRoyal
 				site.Ownership = enumHelper.GetOwnership(int.Parse(inputs[4]));
 				site.Param1 = int.Parse(inputs[5]);
 				site.Param2 = int.Parse(inputs[6]);
-
 			}
 		}
 
