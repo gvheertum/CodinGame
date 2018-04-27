@@ -18,21 +18,20 @@ namespace Challenges.CodeRoyal
 			var queenAI = new CodeRoyalPlayerQueenAI(_log);
 			
 			var actions = new PlayerActions();
-			var queenActions = queenAI.GetQueenActions(state).ToList();
-
-			actions.QueenAction = queenActions.FirstOrDefault() ?? new Action() { ActionString = "WAIT"};
+			var queenActions = queenAI.GetQueenActions(state);
+			actions.QueenAction = GetBestActionForQueen(queenActions);
 			actions.TrainingAction = trainAI.GetTrainingAction(state);
 			return actions;
 		}
 
-		private Action GetActionForQueen(IEnumerable<Action> queenActions)
+		private Action GetBestActionForQueen(IEnumerable<Action> queenActions)
 		{
 			Log($"Found {queenActions.Count()} actions for queen:");
 			foreach(var a in queenActions)
 			{
 				Log($"{a.ActionString} (score: {a.ActionRating})");
 			}
-			return queenActions.OrderByDescending(a => a.ActionRating).FirstOrDefault();
+			return queenActions.OrderByDescending(a => a.ActionRating).FirstOrDefault() ?? new Action() { ActionString = "WAIT"};
 		}
 	}
 
