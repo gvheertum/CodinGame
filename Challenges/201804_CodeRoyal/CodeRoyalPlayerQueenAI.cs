@@ -28,9 +28,10 @@ namespace Challenges.CodeRoyal
 
 		public IEnumerable<Action> GetQueenFleeAction(GameState state)
 		{
+			int multiplier = state.GetMyQueen().Health < 20 ? 50 : 1;
 			return state.GetMySites()
 				.Where(s => s.StructureType == StructureType.Tower)
-				.Select(t => new Action() { ActionString = $"MOVE {t.X} {t.Y}", ActionRating = 10 });
+				.Select(t => new Action() { ActionString = $"MOVE {t.X} {t.Y}", ActionRating = 10 * multiplier });
 		}
 
 		public IEnumerable<Action> GetQueenTowerBuildActions(GameState state)
