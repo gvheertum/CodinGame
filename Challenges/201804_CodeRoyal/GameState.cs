@@ -24,6 +24,11 @@ namespace Challenges.CodeRoyal
 			return Sites.Where(s => s.Ownership == Ownership.Friendly);
 		}
 
+		public IEnumerable<Site> GetEnemySites()
+		{
+			return Sites.Where(s => s.Ownership == Ownership.Enemy);			
+		}
+
 		public IEnumerable<Site> GetFreeSites()
 		{
 			return Sites.Where(s => s.Ownership == Ownership.NotApplicable);

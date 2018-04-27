@@ -44,8 +44,8 @@ namespace Challenges.CodeRoyal
 
 				// First line: A valid queen action
 				// Second line: A set of training instructions
-				WriteLine(moves.QueenAction.ToUpperInvariant().Trim());
-				WriteLine(moves.TrainingAction.ToUpperInvariant().Trim());
+				WriteLine(moves.QueenAction.ActionString.ToUpperInvariant().Trim());
+				WriteLine(moves.TrainingAction.ActionString.ToUpperInvariant().Trim());
 			}
 		}
 

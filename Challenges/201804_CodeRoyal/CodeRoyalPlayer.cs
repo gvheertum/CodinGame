@@ -1,7 +1,7 @@
 //require: Position.cs
 using Framework;
-using Shared;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 //https://www.codingame.com/ide/challenge/code-royale
@@ -14,74 +14,37 @@ namespace Challenges.CodeRoyal
 		}
 		public PlayerActions GetMoves(GameState state)
 		{
-			var locationWeCanUse = GetClosestSiteToQueen(state);
+			var trainAI = new CodeRoyalPlayerTrainingAI(_log);
+			var queenAI = new CodeRoyalPlayerQueenAI(_log);
+			
 			var actions = new PlayerActions();
-			actions.QueenAction = GetQueenAction(state, locationWeCanUse);
-			actions.TrainingAction = ("TRAIN " + GetTrainingActions(state)).Trim();
+			var queenActions = queenAI.GetQueenActions(state).ToList();
+
+			actions.QueenAction = queenActions.FirstOrDefault() ?? new Action() { ActionString = "WAIT"};
+			actions.TrainingAction = trainAI.GetTrainingAction(state);
 			return actions;
 		}
 
-		private string GetQueenAction(GameState state, PositionDistance<Unit,Site> selectedMove)
+		private Action GetActionForQueen(IEnumerable<Action> queenActions)
 		{
-			if(selectedMove == null) { Log("No site to use, returning empty train"); return "WAIT";}
-			
-			Log($"We are going to build a site: ");
-			Log($"Site: {selectedMove.Destination.SiteID} pos:{selectedMove.Destination.X}:{selectedMove.Destination.Y}");
-			Log($"Queen: pos:{selectedMove.Origin.X}:{selectedMove.Origin.Y}");
-
-			if(selectedMove.Destination.UnitTypePlannedForMove == null) 
+			Log($"Found {queenActions.Count()} actions for queen:");
+			foreach(var a in queenActions)
 			{
-				selectedMove.Destination.UnitTypePlannedForMove = 
-					state.GetMySites().Count(s => s.DeductedBarrackUnitType == UnitType.Knight) > state.GetMySites().Count(s => s.DeductedBarrackUnitType == UnitType.Archer)
-					? UnitType.Archer
-					: UnitType.Knight;
+				Log($"{a.ActionString} (score: {a.ActionRating})");
 			}
-			Log($"Building type: {selectedMove.Destination.UnitTypePlannedForMove}");
-
-			//This move will claim our destination, so update
-			if(state.TouchedSite == selectedMove.Destination.SiteID)
-			{
-				Log("we are already there, so that's that");
-			}
-
-			return $"BUILD {selectedMove.Destination.SiteID} BARRACKS-{selectedMove.Destination.UnitTypePlannedForMove}";
-		}
-
-		private string GetTrainingActions(GameState state)
-		{
-			var barracks = state.GetMySites().Where(s => s.StructureType == StructureType.Barracks && s.DeductedBarrackWaitTime <= 0).ToList();
-			if(!barracks.Any()) {Log("No barracks (ready), so no training"); return ""; }
-
-			Log($"We have {barracks.Count()} barracks and {state.Gold} gold");
-			var currGold = state.Gold;
-			string res = "";
-			while(currGold >= 0 && barracks.Any())
-			{
-				var pick = barracks.First();
-				if(pick.TrainingCost <= currGold)
-				{
-					Log($"Issue train for site {pick.SiteID} (type {pick.DeductedBarrackUnitType}) costing: {pick.TrainingCost}");
-					res += pick.SiteID + " "; 
-					currGold = currGold - pick.TrainingCost;
-				}
-				barracks.Remove(pick);
-			}
-			return res.Trim();
-		}
-
-		
-
-		private PositionDistance<Unit,Site> GetClosestSiteToQueen(GameState state)
-		{
-			var sitesWeCanTake = state.GetFreeSites();
-			var siteDistances = state.GetMyQueen().DistancesToDetailed(sitesWeCanTake).OrderBy(d => d.Distance);
-			return siteDistances.FirstOrDefault();
+			return queenActions.OrderByDescending(a => a.ActionRating).FirstOrDefault();
 		}
 	}
 
 	public class PlayerActions
 	{
-		public string QueenAction {get;set;}
-		public string TrainingAction {get;set;}
+		public Action QueenAction {get;set;}
+		public Action TrainingAction {get;set;} 
+	}
+
+	public class Action 
+	{
+		public string ActionString {get;set;}
+		public int ActionRating {get;set;}
 	}
 }

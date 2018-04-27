@@ -110,5 +110,7 @@
     <Content Include="Challenges\201804_CodeRoyal\Unit.cs" />
     <Content Include="Challenges\201802_CodeForLife\LifeBot.cs" />
     <Content Include="Challenges\201804_CodeRoyal\CodeRoyalPlayer.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\CodeRoyalPlayerTrainingAI.cs" />
+    <Content Include="Challenges\201804_CodeRoyal\CodeRoyalPlayerQueenAI.cs" />
   </ItemGroup>
 </Project>

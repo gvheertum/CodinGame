@@ -4,7 +4,7 @@ namespace Framework
 {
 	public abstract class LogInjectableClass
 	{
-		private Action<object> _log;
+		protected readonly Action<object> _log;
 		public LogInjectableClass(Action<object> log)
 		{
 			_log = log;
