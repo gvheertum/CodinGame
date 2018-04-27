@@ -46,5 +46,9 @@ namespace Challenges.CodeRoyal
 	{
 		public string ActionString {get;set;}
 		public int ActionRating {get;set;}
+		public override string ToString()
+		{
+			return $"{ActionString} (rate: {ActionRating})";
+		}
 	}
 }

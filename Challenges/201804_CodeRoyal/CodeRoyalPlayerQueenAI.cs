@@ -25,13 +25,22 @@ namespace Challenges.CodeRoyal
 			return actionsApplicable;
 		}
 
-
+		private const int QueenMinHealth = 30;
 		public IEnumerable<Action> GetQueenFleeAction(GameState state)
 		{
-			int multiplier = state.GetMyQueen().Health < 20 ? 50 : 1;
-			return state.GetMySites()
-				.Where(s => s.StructureType == StructureType.Tower)
-				.Select(t => new Action() { ActionString = $"MOVE {t.X} {t.Y}", ActionRating = 10 * multiplier });
+			if(state.GetMyQueen().Health > QueenMinHealth) 
+			{ 
+				Log($"Queen not in danger (health threshold: {QueenMinHealth}), no-op");
+				return new List<Action>(); 
+			}
+			
+			var towersAndDist = state.GetMyQueen()
+				.DistancesToDetailed(state.GetMySites().Where(s => s.StructureType == StructureType.Tower));
+
+			//Flush a list of towers nearby (prioritize closest as first)
+			return towersAndDist
+				.OrderBy(t => t.Distance)
+				.Select(t => new Action() { ActionString = $"MOVE {t.Destination.X} {t.Destination.Y}", ActionRating = (int)(10000 - t.Distance)});
 		}
 
 		public IEnumerable<Action> GetQueenTowerBuildActions(GameState state)
