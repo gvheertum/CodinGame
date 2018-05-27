@@ -10,6 +10,8 @@ namespace Challenges.CodeRoyal
 {
 	public class CodeRoyalPlayerQueenAI : LogInjectableClass
 	{
+		private const bool HasTowers = false;
+
 		public CodeRoyalPlayerQueenAI(Action<object> log) : base(log)
 		{
 		}
@@ -45,6 +47,7 @@ namespace Challenges.CodeRoyal
 
 		public IEnumerable<Action> GetQueenTowerBuildActions(GameState state)
 		{
+			if(!HasTowers) { return new List<Action>(); }
 			var visitSites = GetSitesVisitableByQueen(state);
 			if(state.GetMySites().Count(t => t.StructureType == StructureType.Tower) > 1)
 			{
